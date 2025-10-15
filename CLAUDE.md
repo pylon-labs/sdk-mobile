@@ -1,0 +1,1 @@
+- This is a monorepo which houses Android, iOS, and eventually React Native SDKs for Pylon's chat widget. The chat widget is a chat bubble at the bottom right of the screen which developers can add to their app to allow their users to chat with support directly from their app, powered by Pylon.

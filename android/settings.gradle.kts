@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Chat Widget Demo"
 include(":app")
-include(":probe")
+include(":pylon")

@@ -1,5 +1,5 @@
 import SwiftUI
-import ChatWidgetIOS
+import PylonChat
 
 @main
 struct DemoApp: App {

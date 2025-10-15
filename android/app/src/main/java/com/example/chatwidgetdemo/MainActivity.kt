@@ -14,10 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.chatwidgetdemo.ui.theme.ChatWidgetDemoTheme
-import com.example.probe.Pylon
-import com.example.probe.PylonChat
-import com.example.probe.PylonChatController
-import com.example.probe.PylonChatListener
+import com.pylon.chatwidget.Pylon
+import com.pylon.chatwidget.PylonChat
+import com.pylon.chatwidget.PylonChatController
+import com.pylon.chatwidget.PylonChatListener
 
 class MainActivity : ComponentActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -28,15 +28,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize ProbeSDK
+        // Initialize Pylon SDK
         Pylon.initialize(
             applicationContext,
             appId = "d48c8c5b-f96c-45e0-bb0f-dfbcecd75c6b"
         ) {
             enableLogging = true
             debugMode = true
-            widgetBaseUrl = "http://10.0.2.2:9001"
-            widgetScriptUrl = "http://10.0.2.2:9001/widget/d48c8c5b-f96c-45e0-bb0f-dfbcecd75c6b"
         }
 
         // Set user
@@ -77,13 +75,13 @@ fun MainContent(modifier: Modifier = Modifier) {
             val controller = pylonChat
             if (controller != null) {
                 val listener = object : PylonChatListener {
-                    override fun onProbeLoaded() {}
-                    override fun onProbeInitialized() {}
-                    override fun onProbeReady() {}
+                    override fun onPylonLoaded() {}
+                    override fun onPylonInitialized() {}
+                    override fun onPylonReady() {}
                     override fun onMessageReceived(message: String) {}
                     override fun onChatOpened() {}
                     override fun onChatClosed() {}
-                    override fun onProbeError(error: String) {}
+                    override fun onPylonError(error: String) {}
                     override fun onFileChooserLaunched(requestCode: Int) {}
                     override fun onUnreadCountChanged(count: Int) {
                         unreadCount = count

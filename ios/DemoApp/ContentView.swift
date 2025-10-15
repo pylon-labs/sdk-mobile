@@ -1,5 +1,5 @@
 import SwiftUI
-import ChatWidgetIOS
+import PylonChat
 
 struct ContentView: View {
     @State private var pylonChatView: PylonChatView?
