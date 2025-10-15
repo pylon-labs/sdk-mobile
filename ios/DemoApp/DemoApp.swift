@@ -15,7 +15,7 @@ struct DemoApp: App {
 
         // Set user
         Pylon.shared.setUser(
-            email: "ben.soh@usepylon.com",
+            email: "ben@ben.com",
             name: "Ben Song"
         )
     }

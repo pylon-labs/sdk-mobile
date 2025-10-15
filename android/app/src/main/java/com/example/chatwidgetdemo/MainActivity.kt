@@ -35,6 +35,8 @@ class MainActivity : ComponentActivity() {
         ) {
             enableLogging = true
             debugMode = true
+//            widgetBaseUrl = "http://10.0.2.2:9001"
+//            widgetScriptUrl = "http://10.0.2.2:9001/widget/d48c8c5b-f96c-45e0-bb0f-dfbcecd75c6b"
         }
 
         // Set user
