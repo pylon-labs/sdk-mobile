@@ -14,7 +14,6 @@ import WebKit
 public struct PylonConfig {
     public let appId: String
     public let enableLogging: Bool
-    public let enableCSP: Bool
     public let primaryColor: String?
     public let debugMode: Bool
     public let widgetBaseUrl: String
@@ -24,14 +23,12 @@ public struct PylonConfig {
 
     public init(appId: String,
                 enableLogging: Bool = true,
-                enableCSP: Bool = false,
                 primaryColor: String? = nil,
                 debugMode: Bool = false,
                 widgetBaseUrl: String? = nil,
                 widgetScriptUrl: String? = nil) {
         self.appId = appId
         self.enableLogging = enableLogging
-        self.enableCSP = enableCSP
         self.primaryColor = primaryColor
         self.debugMode = debugMode
         self.widgetBaseUrl = widgetBaseUrl ?? Self.defaultWidgetBaseUrl
@@ -104,7 +101,6 @@ public class Pylon {
 
     public func initialize(appId: String,
                           enableLogging: Bool = true,
-                          enableCSP: Bool = false,
                           primaryColor: String? = nil,
                           debugMode: Bool = false,
                           widgetBaseUrl: String? = nil,
@@ -112,7 +108,6 @@ public class Pylon {
         let config = PylonConfig(
             appId: appId,
             enableLogging: enableLogging,
-            enableCSP: enableCSP,
             primaryColor: primaryColor,
             debugMode: debugMode,
             widgetBaseUrl: widgetBaseUrl,

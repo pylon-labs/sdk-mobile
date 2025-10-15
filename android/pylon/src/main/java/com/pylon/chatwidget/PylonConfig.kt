@@ -7,7 +7,6 @@ package com.pylon.chatwidget
 data class PylonConfig internal constructor(
     val appId: String,
     val enableLogging: Boolean,
-    val enableCSP: Boolean,
     val primaryColor: String?,
     val debugMode: Boolean,
     val widgetBaseUrl: String,
@@ -16,7 +15,6 @@ data class PylonConfig internal constructor(
 
     class Builder internal constructor(private val appId: String) {
         var enableLogging: Boolean = true
-        var enableCSP: Boolean = false
         var primaryColor: String? = null
         var debugMode: Boolean = false
         var widgetBaseUrl: String = DEFAULT_WIDGET_BASE_URL
@@ -27,7 +25,6 @@ data class PylonConfig internal constructor(
             return PylonConfig(
                 appId = appId,
                 enableLogging = enableLogging,
-                enableCSP = enableCSP,
                 primaryColor = primaryColor,
                 debugMode = debugMode,
                 widgetBaseUrl = widgetBaseUrl.ifBlank { DEFAULT_WIDGET_BASE_URL },
@@ -48,7 +45,6 @@ data class PylonConfig internal constructor(
         fun from(existing: PylonConfig, block: Builder.() -> Unit): PylonConfig {
             val builder = Builder(existing.appId).apply {
                 enableLogging = existing.enableLogging
-                enableCSP = existing.enableCSP
                 primaryColor = existing.primaryColor
                 debugMode = existing.debugMode
                 widgetBaseUrl = existing.widgetBaseUrl

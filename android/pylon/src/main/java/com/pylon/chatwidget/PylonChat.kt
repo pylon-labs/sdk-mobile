@@ -469,26 +469,6 @@ class PylonChat @JvmOverloads constructor(
     }
 
     private fun generateHtml(config: PylonConfig, user: PylonUser?): String {
-        val nonce = if (config.enableCSP) generateNonce(16) else ""
-
-        val cspMeta = if (config.enableCSP) {
-            val cspPolicy = """
-                connect-src 'self' https://*.usepylon.com wss://*.pusher.com;
-                script-src 'self' https://widget.usepylon.com 'nonce-$nonce';
-                font-src 'self' https://*.usepylon.com;
-                style-src 'self' https://*.usepylon.com 'nonce-$nonce' 'unsafe-inline';
-                img-src 'self' https://*.usepylon.com https://pylon-avatars.s3.us-west-1.amazonaws.com https://d3vl36l12sfx26.cloudfront.net;
-                frame-src *;
-                child-src *;
-                object-src 'none';
-                base-uri 'self'
-            """.trimIndent().replace("\n", " ")
-            """<meta http-equiv="Content-Security-Policy" content="$cspPolicy">"""
-        } else {
-            ""
-        }
-
-        val nonceAttr = if (config.enableCSP) """nonce="$nonce"""" else ""
 
         val chatSettings = buildChatSettings(config, user)
 
@@ -506,8 +486,7 @@ class PylonChat @JvmOverloads constructor(
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-                $cspMeta
-                <style $nonceAttr>
+                <style>
                     body {
                         margin: 0;
                         padding: 0;
@@ -526,14 +505,14 @@ class PylonChat @JvmOverloads constructor(
                 </style>
             </head>
             <body>
-                <script $nonceAttr>
+                <script>
                     if (!window.pylon) {
                         window.pylon = {};
                     }
                     window.pylon.chat_settings = $chatSettings;
                     console.log("Pylon initialized with:", window.pylon.chat_settings);
                 </script>
-                <script $nonceAttr>
+                <script>
                     (function(){
                         var e=window;
                         var t=document;
@@ -553,7 +532,7 @@ class PylonChat @JvmOverloads constructor(
                         else if(e.addEventListener){e.addEventListener("load",r,false)}
                     })();
                 </script>
-                <script $nonceAttr>
+                <script>
                     window.pylonReady = function() {
                         if (window.PylonNative) {
                             window.PylonNative.onReady();
@@ -588,12 +567,6 @@ class PylonChat @JvmOverloads constructor(
         return joined
     }
 
-    private fun generateNonce(length: Int): String {
-        val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
-        return (1..length)
-            .map { allowedChars.random() }
-            .joinToString("")
-    }
 
     inner class PylonJSInterface {
         @JavascriptInterface
