@@ -218,8 +218,14 @@ public class PylonChatView: UIView {
         return overlay
     }()
 
+    private func log(_ message: String) {
+        if config.enableLogging {
+            NSLog(message)
+        }
+    }
+
     private func setupWebView() {
-        NSLog("🚀 PylonChatView: setupWebView called")
+        log("🚀 PylonChatView: setupWebView called")
 
         let configuration = WKWebViewConfiguration()
         configuration.allowsInlineMediaPlayback = true
@@ -262,15 +268,15 @@ public class PylonChatView: UIView {
             ])
         }
 
-        NSLog("🚀 PylonChatView: setupWebView completed")
+        log("🚀 PylonChatView: setupWebView completed")
     }
 
     public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        NSLog("🔍 PylonChatView.hitTest - point: (\(point.x), \(point.y)), isChatWindowOpen: \(isChatWindowOpen)")
+        log("🔍 PylonChatView.hitTest - point: (\(point.x), \(point.y)), isChatWindowOpen: \(isChatWindowOpen)")
 
         // If chat window is open, pass all touches to webView
         if isChatWindowOpen {
-            NSLog("✅ Chat is OPEN - passing touches to webView")
+            log("✅ Chat is OPEN - passing touches to webView")
             return webView.hitTest(point, with: event)
         }
 
@@ -280,12 +286,12 @@ public class PylonChatView: UIView {
         }
 
         if shouldHandleTap {
-            NSLog("✅ Touch is within interactive bounds - passing to webView")
+            log("✅ Touch is within interactive bounds - passing to webView")
             return webView.hitTest(point, with: event)
         }
 
         // Let touches fall through to views behind this view
-        NSLog("❌ Touch outside interactive area - passing through")
+        log("❌ Touch outside interactive area - passing through")
         return nil
     }
 
@@ -481,34 +487,34 @@ public class PylonChatView: UIView {
     // MARK: - Public API
 
     public func openChat() {
-        NSLog("📱 Pylon API: openChat() called")
+        log("📱 Pylon API: openChat() called")
         executeJavaScript("if(window.Pylon) { window.Pylon('show'); }")
     }
 
     public func closeChat() {
-        NSLog("📱 Pylon API: closeChat() called")
+        log("📱 Pylon API: closeChat() called")
         executeJavaScript("if(window.Pylon) { window.Pylon('hide'); }")
     }
 
     public func showChatBubble() {
-        NSLog("📱 Pylon API: showChatBubble() called")
+        log("📱 Pylon API: showChatBubble() called")
         executeJavaScript("if(window.Pylon) { window.Pylon('showChatBubble'); }")
     }
 
     public func hideChatBubble() {
-        NSLog("📱 Pylon API: hideChatBubble() called")
+        log("📱 Pylon API: hideChatBubble() called")
         executeJavaScript("if(window.Pylon) { window.Pylon('hideChatBubble'); }")
     }
 
     public func setNewIssueCustomFields(_ fields: [String: Any]) {
         let jsObject = buildJavaScriptObject(from: fields)
-        NSLog("📱 Pylon API: setNewIssueCustomFields with object: \(jsObject)")
+        log("📱 Pylon API: setNewIssueCustomFields with object: \(jsObject)")
         invokePylonCommand("setNewIssueCustomFields", arguments: [jsObject], isJsonObject: true)
     }
 
     public func setTicketFormFields(_ fields: [String: Any]) {
         let jsObject = buildJavaScriptObject(from: fields)
-        NSLog("📱 Pylon API: setTicketFormFields with object: \(jsObject)")
+        log("📱 Pylon API: setTicketFormFields with object: \(jsObject)")
         invokePylonCommand("setTicketFormFields", arguments: [jsObject], isJsonObject: true)
     }
 
@@ -586,7 +592,7 @@ public class PylonChatView: UIView {
             let formattedArgs = arguments.joined(separator: ", ")
             script = "if(window.Pylon){ window.Pylon('\(command)', \(formattedArgs)); }"
         }
-        NSLog("📱 Executing JS: \(script)")
+        log("📱 Executing JS: \(script)")
         executeJavaScript(script)
     }
 }
@@ -613,7 +619,7 @@ extension PylonChatView: WKUIDelegate {
     public func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         // Handle window.open() and target="_blank" links
         if let url = navigationAction.request.url {
-            NSLog("📱 Opening external URL: \(url)")
+            log("📱 Opening external URL: \(url)")
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
         return nil
@@ -630,30 +636,32 @@ extension PylonChatView: WKScriptMessageHandler {
         }
 
         DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
             switch type {
             case "onInitialized":
-                NSLog("📱 Pylon: onInitialized")
-                self?.listener?.onPylonInitialized()
+                self.log("📱 Pylon: onInitialized")
+                self.listener?.onPylonInitialized()
             case "onReady":
-                NSLog("📱 Pylon: onReady")
-                self?.listener?.onPylonReady()
+                self.log("📱 Pylon: onReady")
+                self.listener?.onPylonReady()
             case "onChatWindowOpened":
-                NSLog("📱 Pylon: Chat Window OPENED ✅")
-                self?.isChatWindowOpen = true
-                self?.listener?.onChatOpened()
+                self.log("📱 Pylon: Chat Window OPENED ✅")
+                self.isChatWindowOpen = true
+                self.listener?.onChatOpened()
             case "onChatWindowClosed":
-                NSLog("📱 Pylon: Chat Window CLOSED ❌")
-                self?.isChatWindowOpen = false
-                self?.listener?.onChatClosed()
+                self.log("📱 Pylon: Chat Window CLOSED ❌")
+                self.isChatWindowOpen = false
+                self.listener?.onChatClosed()
             case "onUnreadCountChanged":
                 if let count = body["count"] as? Int {
-                    NSLog("📱 Pylon: Unread count changed to \(count)")
-                    self?.listener?.onUnreadCountChanged(count: count)
+                    self.log("📱 Pylon: Unread count changed to \(count)")
+                    self.listener?.onUnreadCountChanged(count: count)
                 }
             case "onInteractiveElementUpdate":
                 if let selector = body["selector"] as? String {
-                    NSLog("📱 Pylon: Interactive element update for \(selector)")
-                    self?.findInteractiveElementPosition(selector: selector)
+                    self.log("📱 Pylon: Interactive element update for \(selector)")
+                    self.findInteractiveElementPosition(selector: selector)
                 }
             case "updateInteractiveBounds":
                 if let selector = body["selector"] as? String,
@@ -662,16 +670,16 @@ extension PylonChatView: WKScriptMessageHandler {
                    let right = body["right"] as? CGFloat,
                    let bottom = body["bottom"] as? CGFloat {
                     let rect = CGRect(x: left, y: top, width: right - left, height: bottom - top)
-                    NSLog("📱 Pylon: Updating bounds for \(selector): \(rect)")
-                    self?.interactiveBounds[selector] = rect
+                    self.log("📱 Pylon: Updating bounds for \(selector): \(rect)")
+                    self.interactiveBounds[selector] = rect
 
                     // Update debug overlay
-                    if let config = self?.config, config.debugMode {
-                        self?.debugOverlay.interactiveBounds = self?.interactiveBounds ?? [:]
+                    if self.config.debugMode {
+                        self.debugOverlay.interactiveBounds = self.interactiveBounds
                     }
                 }
             default:
-                NSLog("📱 Pylon: Unknown message type: \(type)")
+                self.log("📱 Pylon: Unknown message type: \(type)")
                 break
             }
         }
