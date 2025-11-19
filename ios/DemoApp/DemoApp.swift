@@ -8,7 +8,8 @@ struct DemoApp: App {
         Pylon.shared.initialize(
             appId: "d48c8c5b-f96c-45e0-bb0f-dfbcecd75c6b",
             enableLogging: true,
-            debugMode: true,
+            debugMode: true
+            // For local development, uncomment these:
             // widgetBaseUrl: "http://localhost:9001",
             // widgetScriptUrl: "http://localhost:9001/widget/d48c8c5b-f96c-45e0-bb0f-dfbcecd75c6b"
         )

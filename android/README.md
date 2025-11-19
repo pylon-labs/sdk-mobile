@@ -29,11 +29,40 @@ include(":app")
 include(":pylon")
 ```
 
-## Usage
+## Demo App
+
+### 1. Set environment variables for demo app
+
+The demo app uses `.env.local` for easy configuration. Copy the example file and add your credentials:
+
+```bash
+cp env.local.example .env.local
+```
+
+Edit `.env.local` with your Pylon account details:
+
+```bash
+# Get your app ID from https://app.usepylon.com/settings/chat-widget
+WIDGET_APP_ID=your-app-id-from-pylon
+
+# Test user for the demo app
+USER_EMAIL=john@yourcompany.com
+USER_NAME=John Doe
+```
+
+### 2. Run the Demo App
+
+Open the project in Android Studio and run the `app` module. The demo app will automatically use your configuration from `.env.local`.
+
+**Note:** The demo app's configuration is in `app/src/main/java/com/example/chatwidgetdemo/MainActivity.kt` - this is for testing only. In your own app, you'll initialize the SDK directly in your code.
+
+---
+
+## Integration Guide
 
 ### Initialize the SDK
 
-Initialize Pylon in your Application class or Activity's `onCreate()`:
+In your own app, initialize Pylon in your Application class or Activity's `onCreate()`:
 
 ```kotlin
 import com.pylon.chatwidget.Pylon

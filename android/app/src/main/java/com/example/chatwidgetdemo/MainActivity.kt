@@ -28,22 +28,34 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize Pylon SDK
+        // Initialize Pylon SDK - configuration from .env.local
         Pylon.initialize(
             applicationContext,
-            appId = "d48c8c5b-f96c-45e0-bb0f-dfbcecd75c6b"
+            appId = BuildConfig.WIDGET_APP_ID
         ) {
             enableLogging = true
             debugMode = true
-//            widgetBaseUrl = "http://10.0.2.2:9001"
-//            widgetScriptUrl = "http://10.0.2.2:9001/widget/d48c8c5b-f96c-45e0-bb0f-dfbcecd75c6b"
+            
+            // Set custom widget URL if configured in .env.local
+            if (BuildConfig.WIDGET_BASE_URL.isNotEmpty()) {
+                widgetBaseUrl = BuildConfig.WIDGET_BASE_URL
+                widgetScriptUrl = "${BuildConfig.WIDGET_BASE_URL}/widget/${BuildConfig.WIDGET_APP_ID}"
+            }
         }
 
-        // Set user
+        // Set user - configuration from .env.local
         Pylon.setUser(
-            email = "ben@ben.com",
-            name = "Ben Song"
-        )
+            email = BuildConfig.USER_EMAIL,
+            name = BuildConfig.USER_NAME
+        ) {
+            // Set optional fields if configured
+            if (BuildConfig.USER_AVATAR_URL.isNotEmpty()) {
+                avatarUrl = BuildConfig.USER_AVATAR_URL
+            }
+            if (BuildConfig.USER_EMAIL_HASH.isNotEmpty()) {
+                emailHash = BuildConfig.USER_EMAIL_HASH
+            }
+        }
 
         setContent {
             ChatWidgetDemoTheme(darkTheme = true) {

@@ -331,6 +331,7 @@ class PylonChat @JvmOverloads constructor(
                 if (!window.pylon) {
                     window.pylon = {};
                 }
+                window.pylon.debug = ${config.debugMode};
                 window.pylon.chat_settings = $settingsObject;
 
                 if (window.Pylon) {
@@ -509,6 +510,7 @@ class PylonChat @JvmOverloads constructor(
                     if (!window.pylon) {
                         window.pylon = {};
                     }
+                    window.pylon.debug = ${config.debugMode};
                     window.pylon.chat_settings = $chatSettings;
                     console.log("Pylon initialized with:", window.pylon.chat_settings);
                 </script>
