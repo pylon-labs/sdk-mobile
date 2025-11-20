@@ -96,3 +96,6 @@ iOSInjectionProject/
 
 # Mac
 .DS_Store
+
+# Edit this file with your own settings: cp EnvConfig.swift.example DemoApp/EnvConfig.swift
+DemoApp/EnvConfig.swift

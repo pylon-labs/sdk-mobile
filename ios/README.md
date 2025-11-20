@@ -8,6 +8,38 @@ Add Pylon's chat widget to your iOS application to enable in-app customer suppor
 - Swift 5.5+
 - Xcode 13.0+
 
+## Development Setup
+
+### Required: Configure Your App
+
+The DemoApp requires configuration before it can run. You must provide your own Pylon app ID.
+
+**Setup:**
+
+1. **Get your Pylon app ID** from https://app.usepylon.com/settings
+
+2. **Edit `DemoApp/EnvConfig.swift`** with your settings:
+
+   ```swift
+   enum EnvConfig {
+       static let widgetAppId = "your-app-id-here"
+       static let widgetBaseUrl = "http://localhost:9002"
+       static let userEmail = "your@email.com"
+       static let userName = "Your Name"
+       static let userAvatarUrl: String? = nil
+       static let userEmailHash: String? = nil
+   }
+   ```
+
+3. Build and run in Xcode (⌘R)
+
+The app will fail with a clear error message if you haven't configured your app ID.
+
+### Configuration Files
+
+- **`DemoApp/EnvConfig.swift`** - Your configuration (edit directly)
+- **`EnvConfig.swift.example`** - Reference template (copy to DemoApp/)
+
 ## Installation
 
 ### 1. Add the SDK to your project

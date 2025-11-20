@@ -1,0 +1,34 @@
+//
+//  EnvConfig.swift
+//  DemoApp
+//
+//  Configuration for the Pylon Chat Demo App
+//
+//  Setup:
+//    1. Copy this file: cp EnvConfig.swift.example DemoApp/EnvConfig.swift
+//    2. Edit DemoApp/EnvConfig.swift with your settings from https://app.usepylon.com/settings
+//    3. Build and run
+//
+//  DemoApp/EnvConfig.swift is gitignored, so your settings stay local.
+//
+
+import Foundation
+
+enum EnvConfig {
+    // REQUIRED: Your Pylon app ID from https://app.usepylon.com/settings
+    static let widgetAppId = "YOUR_APP_ID_HERE"
+    
+    // REQUIRED: Widget base URL
+    // Production: "https://widget.usepylon.com"
+    // Local development: "http://localhost:9002"
+    static let widgetBaseUrl = "https://widget.usepylon.com"
+    
+    // Test user for the demo app
+    static let userEmail = "demo@example.com"
+    static let userName = "Demo User"
+    
+    // Optional user fields
+    static let userAvatarUrl: String? = nil
+    static let userEmailHash: String? = nil
+}
+

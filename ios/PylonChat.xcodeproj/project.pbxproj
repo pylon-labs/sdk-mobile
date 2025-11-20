@@ -6,6 +6,35 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B56BFFD72E94EBF000D4C76D /* PylonChat.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B56BFFC92E94EBE000D4C76D /* PylonChat.framework */; };
+		B56BFFDC2E94EBF000D4C76D /* PylonChat.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B56BFFC92E94EBE000D4C76D /* PylonChat.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B56BFFDB2E94EBF000D4C76D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B56BFFC02E94EBE000D4C76D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B56BFFC82E94EBE000D4C76D;
+			remoteInfo = PylonChat;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B56BFFDA2E94EBF000D4C76D /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				B56BFFDC2E94EBF000D4C76D /* PylonChat.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		B56BFFC92E94EBE000D4C76D /* PylonChat.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PylonChat.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B56BFFD52E94EBF000D4C76D /* DemoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -200,35 +229,6 @@
 			targetProxy = B56BFFDB2E94EBF000D4C76D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin PBXContainerItemProxy section */
-		B56BFFDB2E94EBF000D4C76D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B56BFFC02E94EBE000D4C76D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = B56BFFC82E94EBE000D4C76D;
-			remoteInfo = PylonChat;
-		};
-/* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		B56BFFDA2E94EBF000D4C76D /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				B56BFFDC2E94EBF000D4C76D /* PylonChat.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
-/* Begin PBXBuildFile section */
-		B56BFFD72E94EBF000D4C76D /* PylonChat.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B56BFFC92E94EBE000D4C76D /* PylonChat.framework */; };
-		B56BFFDC2E94EBF000D4C76D /* PylonChat.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B56BFFC92E94EBE000D4C76D /* PylonChat.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-/* End PBXBuildFile section */
 
 /* Begin XCBuildConfiguration section */
 		B56BFFCE2E94EBE000D4C76D /* Debug */ = {

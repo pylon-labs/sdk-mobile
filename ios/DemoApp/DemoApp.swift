@@ -4,20 +4,39 @@ import PylonChat
 @main
 struct DemoApp: App {
     init() {
+        // Configuration is loaded from EnvConfig.swift
+        // To customize: cp ../EnvConfig.swift.example DemoApp/EnvConfig.swift
+        // Then edit EnvConfig.swift with your app ID from https://app.usepylon.com/settings
+        
+        // Validate configuration
+        guard EnvConfig.widgetAppId != "YOUR_APP_ID_HERE" && !EnvConfig.widgetAppId.isEmpty else {
+            fatalError("""
+                ⚠️ Configuration Required
+                
+                Please configure EnvConfig.swift with your Pylon app ID:
+                1. Copy: cp EnvConfig.swift.example DemoApp/EnvConfig.swift
+                2. Edit DemoApp/EnvConfig.swift with your app ID from https://app.usepylon.com/settings
+                3. Rebuild and run
+                """)
+        }
+        
+        let widgetScriptUrl = "\(EnvConfig.widgetBaseUrl)/widget/\(EnvConfig.widgetAppId)"
+        
         // Initialize Pylon SDK
         Pylon.shared.initialize(
-            appId: "d48c8c5b-f96c-45e0-bb0f-dfbcecd75c6b",
+            appId: EnvConfig.widgetAppId,
             enableLogging: true,
-            debugMode: true
-            // For local development, uncomment these:
-            // widgetBaseUrl: "http://localhost:9001",
-            // widgetScriptUrl: "http://localhost:9001/widget/d48c8c5b-f96c-45e0-bb0f-dfbcecd75c6b"
+            debugMode: true,
+            widgetBaseUrl: EnvConfig.widgetBaseUrl,
+            widgetScriptUrl: widgetScriptUrl
         )
 
-        // Set user
+        // Set user from environment
         Pylon.shared.setUser(
-            email: "ben@ben.com",
-            name: "Ben Song"
+            email: EnvConfig.userEmail,
+            name: EnvConfig.userName,
+            avatarUrl: EnvConfig.userAvatarUrl,
+            emailHash: EnvConfig.userEmailHash
         )
     }
 
