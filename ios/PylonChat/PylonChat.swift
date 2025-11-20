@@ -69,7 +69,7 @@ public protocol PylonChatListener: AnyObject {
     func onPylonReady()
     func onMessageReceived(message: String)
     func onChatOpened()
-    func onChatClosed()
+    func onChatClosed(wasOpen: Bool)
     func onPylonError(error: String)
     func onUnreadCountChanged(count: Int)
 }
@@ -80,7 +80,7 @@ public extension PylonChatListener {
     func onPylonReady() {}
     func onMessageReceived(message: String) {}
     func onChatOpened() {}
-    func onChatClosed() {}
+    func onChatClosed(wasOpen: Bool) {}
     func onPylonError(error: String) {}
     func onUnreadCountChanged(count: Int) {}
 }
@@ -650,9 +650,10 @@ extension PylonChatView: WKScriptMessageHandler {
                 self.isChatWindowOpen = true
                 self.listener?.onChatOpened()
             case "onChatWindowClosed":
-                self.log("📱 Pylon: Chat Window CLOSED ❌")
+                let wasOpen = self.isChatWindowOpen
+                self.log("📱 Pylon: Chat Window CLOSED ❌ (wasOpen: \(wasOpen))")
                 self.isChatWindowOpen = false
-                self.listener?.onChatClosed()
+                self.listener?.onChatClosed(wasOpen: wasOpen)
             case "onUnreadCountChanged":
                 if let count = body["count"] as? Int {
                     self.log("📱 Pylon: Unread count changed to \(count)")
