@@ -29,15 +29,15 @@ RCT_EXPORT_VIEW_PROPERTY(userAccountExternalId, NSString)
 // Coordinate space adjustment
 RCT_EXPORT_VIEW_PROPERTY(topInset, NSNumber)
 
-// Event callbacks (prefixed with rct to avoid Swift naming collision)
-RCT_EXPORT_VIEW_PROPERTY(rctOnPylonLoaded, RCTBubblingEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(rctOnPylonInitialized, RCTBubblingEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(rctOnPylonReady, RCTBubblingEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(rctOnChatOpened, RCTBubblingEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(rctOnChatClosed, RCTBubblingEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(rctOnUnreadCountChanged, RCTBubblingEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(rctOnMessageReceived, RCTBubblingEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(rctOnPylonError, RCTBubblingEventBlock)
+// Event callbacks - remap JS prop names (onX) to Swift property names (rctOnX) to avoid protocol collision
+RCT_REMAP_VIEW_PROPERTY(onPylonLoaded, rctOnPylonLoaded, RCTBubblingEventBlock)
+RCT_REMAP_VIEW_PROPERTY(onPylonInitialized, rctOnPylonInitialized, RCTBubblingEventBlock)
+RCT_REMAP_VIEW_PROPERTY(onPylonReady, rctOnPylonReady, RCTBubblingEventBlock)
+RCT_REMAP_VIEW_PROPERTY(onChatOpened, rctOnChatOpened, RCTBubblingEventBlock)
+RCT_REMAP_VIEW_PROPERTY(onChatClosed, rctOnChatClosed, RCTBubblingEventBlock)
+RCT_REMAP_VIEW_PROPERTY(onUnreadCountChanged, rctOnUnreadCountChanged, RCTBubblingEventBlock)
+RCT_REMAP_VIEW_PROPERTY(onMessageReceived, rctOnMessageReceived, RCTBubblingEventBlock)
+RCT_REMAP_VIEW_PROPERTY(onPylonError, rctOnPylonError, RCTBubblingEventBlock)
 
 // Imperative methods
 RCT_EXTERN_METHOD(openChat:(nonnull NSNumber *)reactTag)

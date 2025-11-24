@@ -6,7 +6,6 @@ import { PylonChatWidget } from "@pylon/react-native-chat";
 import { StatusBar } from "expo-status-bar";
 import React, { useRef, useState } from "react";
 import {
-  Alert,
   Modal,
   ScrollView,
   StyleSheet,
@@ -56,24 +55,29 @@ function AppContent() {
 
   const listener: PylonChatListener = {
     onPylonLoaded: () => {
-      console.log("Pylon loaded");
+      console.log("✅ [EVENT] Pylon loaded");
+    },
+    onPylonInitialized: () => {
+      console.log("✅ [EVENT] Pylon initialized");
     },
     onPylonReady: () => {
-      console.log("Pylon ready");
+      console.log("✅ [EVENT] Pylon ready");
     },
     onChatOpened: () => {
-      console.log("Chat opened");
+      console.log("✅ [EVENT] Chat opened");
     },
     onChatClosed: (wasOpen) => {
-      console.log("Chat closed (was previously open:", wasOpen, ")");
+      console.log("✅ [EVENT] Chat closed (was previously open:", wasOpen, ")");
     },
     onUnreadCountChanged: (count) => {
-      console.log("Unread count:", count);
+      console.log("✅ [EVENT] Unread count:", count);
       setUnreadCount(count);
     },
+    onMessageReceived: (message) => {
+      console.log("✅ [EVENT] Message received:", message);
+    },
     onPylonError: (error) => {
-      console.error("Pylon error:", error);
-      Alert.alert("Error", error);
+      console.error("❌ [EVENT] Pylon error:", error);
     },
   };
 
