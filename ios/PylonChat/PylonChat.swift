@@ -32,7 +32,10 @@ public struct PylonConfig {
         self.primaryColor = primaryColor
         self.debugMode = debugMode
         self.widgetBaseUrl = widgetBaseUrl ?? Self.defaultWidgetBaseUrl
-        self.widgetScriptUrl = widgetScriptUrl ?? "\(Self.defaultWidgetBaseUrl)/widget/\(appId)"
+        
+        // URL-encode the appId for the script URL
+        let encodedAppId = appId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? appId
+        self.widgetScriptUrl = widgetScriptUrl ?? "\(Self.defaultWidgetBaseUrl)/widget/\(encodedAppId)"
     }
 }
 
@@ -182,6 +185,16 @@ public class PylonChatView: UIView {
     private var hasStartedLoading = false
     private var isLoaded = false
     private var isChatWindowOpen = false
+    
+    // Top inset for coordinate space adjustment (e.g., status bar height in React Native)
+    public var topInset: CGFloat = 0 {
+        didSet {
+            log("📱 Top inset updated to: \(topInset)")
+            if config.debugMode {
+                debugOverlay.setNeedsDisplay()
+            }
+        }
+    }
 
     public weak var listener: PylonChatListener?
 
@@ -272,7 +285,7 @@ public class PylonChatView: UIView {
     }
 
     public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        log("🔍 PylonChatView.hitTest - point: (\(point.x), \(point.y)), isChatWindowOpen: \(isChatWindowOpen)")
+        log("🔍 PylonChatView.hitTest - point: (\(point.x), \(point.y)), topInset: \(topInset), isChatWindowOpen: \(isChatWindowOpen)")
 
         // If chat window is open, pass all touches to webView
         if isChatWindowOpen {
@@ -280,13 +293,18 @@ public class PylonChatView: UIView {
             return webView.hitTest(point, with: event)
         }
 
-        // If chat window is closed, check if touch is within interactive bounds
+        // Adjust point by top inset to match WebView's coordinate space
+        // The WebView reports bounds in viewport coordinates (starting below status bar)
+        // but hitTest receives points in this view's coordinate space
+        let adjustedPoint = CGPoint(x: point.x, y: point.y + topInset)
+        
+        // Check if adjusted touch is within interactive bounds
         let shouldHandleTap = interactiveBounds.values.contains { bounds in
-            !bounds.isEmpty && bounds.contains(point)
+            !bounds.isEmpty && bounds.contains(adjustedPoint)
         }
 
         if shouldHandleTap {
-            log("✅ Touch is within interactive bounds - passing to webView")
+            log("✅ Touch is within interactive bounds (adjusted: \(adjustedPoint)) - passing to webView")
             return webView.hitTest(point, with: event)
         }
 
@@ -381,30 +399,40 @@ public class PylonChatView: UIView {
     }
 
     private func buildChatSettings() -> String {
-        var fields: [String] = ["app_id: '\(config.appId)'"]
+        var fields: [String] = ["app_id: '\(escapeJavaScriptString(config.appId))'"]
 
         if let primaryColor = config.primaryColor {
-            fields.append("primary_color: '\(primaryColor)'")
+            fields.append("primary_color: '\(escapeJavaScriptString(primaryColor))'")
         }
 
         if let user = user {
-            fields.append("email: '\(user.email)'")
-            fields.append("name: '\(user.name)'")
+            fields.append("email: '\(escapeJavaScriptString(user.email))'")
+            fields.append("name: '\(escapeJavaScriptString(user.name))'")
             if let avatarUrl = user.avatarUrl {
-                fields.append("avatar_url: '\(avatarUrl)'")
+                fields.append("avatar_url: '\(escapeJavaScriptString(avatarUrl))'")
             }
             if let emailHash = user.emailHash {
-                fields.append("email_hash: '\(emailHash)'")
+                fields.append("email_hash: '\(escapeJavaScriptString(emailHash))'")
             }
             if let accountId = user.accountId {
-                fields.append("account_id: '\(accountId)'")
+                fields.append("account_id: '\(escapeJavaScriptString(accountId))'")
             }
             if let accountExternalId = user.accountExternalId {
-                fields.append("account_external_id: '\(accountExternalId)'")
+                fields.append("account_external_id: '\(escapeJavaScriptString(accountExternalId))'")
             }
         }
 
         return "{\n            " + fields.joined(separator: ",\n            ") + "\n        }"
+    }
+    
+    private func escapeJavaScriptString(_ string: String) -> String {
+        return string
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "'", with: "\\'")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\r")
+            .replacingOccurrences(of: "\t", with: "\\t")
     }
 
     private func initializePylon() {
@@ -677,6 +705,7 @@ extension PylonChatView: WKScriptMessageHandler {
                     // Update debug overlay
                     if self.config.debugMode {
                         self.debugOverlay.interactiveBounds = self.interactiveBounds
+                        self.debugOverlay.topInset = self.topInset
                     }
                 }
             default:
@@ -758,6 +787,8 @@ private class DebugOverlayView: UIView {
             setNeedsDisplay()
         }
     }
+    
+    var topInset: CGFloat = 0
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -776,16 +807,25 @@ private class DebugOverlayView: UIView {
         for (selector, rect) in interactiveBounds {
             guard !rect.isEmpty else { continue }
 
+            // Adjust the bounds by subtracting topInset for display
+            // This shows where the bounds actually are in this view's coordinate space
+            let adjustedRect = CGRect(
+                x: rect.origin.x,
+                y: rect.origin.y - topInset,
+                width: rect.width,
+                height: rect.height
+            )
+
             let color = getColor(for: selector)
 
             // Draw filled rectangle with transparency
             context.setFillColor(color.withAlphaComponent(0.3).cgColor)
-            context.fill(rect)
+            context.fill(adjustedRect)
 
             // Draw border
             context.setStrokeColor(color.cgColor)
             context.setLineWidth(4)
-            context.stroke(rect)
+            context.stroke(adjustedRect)
 
             // Draw label
             let attributes: [NSAttributedString.Key: Any] = [
@@ -796,7 +836,7 @@ private class DebugOverlayView: UIView {
             ]
 
             let labelText = selector as NSString
-            let labelPoint = CGPoint(x: rect.origin.x + 5, y: max(rect.origin.y - 20, 5))
+            let labelPoint = CGPoint(x: adjustedRect.origin.x + 5, y: max(adjustedRect.origin.y - 20, 5))
             labelText.draw(at: labelPoint, withAttributes: attributes)
         }
     }

@@ -1,0 +1,39 @@
+{
+  "name": "@pylon/react-native-chat",
+  "version": "0.1.0",
+  "description": "Pylon Chat SDK for React Native",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "homepage": "https://github.com/usepylon/pylon-chat-sdk",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "copy-sdks": "bash scripts/copy-native-sdks.sh",
+    "prepare": "npm run copy-sdks && npm run build"
+  },
+  "keywords": [
+    "pylon",
+    "chat",
+    "react-native",
+    "customer-support",
+    "native-module"
+  ],
+  "author": "Pylon",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native": ">=0.70.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-native": "^0.72.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "lib",
+    "src",
+    "ios",
+    "android",
+    "RNPylonChat.podspec"
+  ]
+}

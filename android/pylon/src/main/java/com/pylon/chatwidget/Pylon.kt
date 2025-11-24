@@ -104,8 +104,20 @@ object Pylon {
     @JvmStatic
     @JvmOverloads
     fun createChat(context: Context, listener: PylonChatListener? = null): PylonChatController {
-        requireState()
-        val chatView = PylonChat(context)
+        val state = requireState()
+        val chatView = PylonChat(context, state.config, state.user)
+        listener?.let { chatView.setListener(it) }
+        chatView.ensurePylonLoaded()
+        return PylonChatController(chatView)
+    }
+
+    /**
+     * Create a chat view with specific config and user (instance-based, no global state).
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun createChat(context: Context, config: PylonConfig, user: PylonUser? = null, listener: PylonChatListener? = null): PylonChatController {
+        val chatView = PylonChat(context, config, user)
         listener?.let { chatView.setListener(it) }
         chatView.ensurePylonLoaded()
         return PylonChatController(chatView)

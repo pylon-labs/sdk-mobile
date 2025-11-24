@@ -1,5 +1,7 @@
 package com.pylon.chatwidget
 
+import java.net.URLEncoder
+
 /**
  * Immutable configuration for the Pylon SDK. Use the [Builder] to customise
  * the settings and pass the result to [Pylon.initialize].
@@ -36,7 +38,10 @@ data class PylonConfig internal constructor(
     companion object {
         private const val DEFAULT_WIDGET_BASE_URL = "https://widget.usepylon.com"
 
-        private fun defaultScriptUrl(appId: String): String = "$DEFAULT_WIDGET_BASE_URL/widget/$appId"
+        private fun defaultScriptUrl(appId: String): String {
+            val encodedAppId = URLEncoder.encode(appId, "UTF-8")
+            return "$DEFAULT_WIDGET_BASE_URL/widget/$encodedAppId"
+        }
 
         fun build(appId: String, block: Builder.() -> Unit = {}): PylonConfig {
             return Builder(appId).apply(block).build()

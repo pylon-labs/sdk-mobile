@@ -1,0 +1,23 @@
+# Source files (we ship compiled lib/ instead)
+src/
+tsconfig.json
+
+# Demo app
+demo-app/
+
+# Development files
+*.tsbuildinfo
+.eslintrc.js
+.prettierrc
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+

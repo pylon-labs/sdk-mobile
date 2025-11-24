@@ -28,35 +28,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize Pylon SDK - configuration from .env.local
-        Pylon.initialize(
-            applicationContext,
-            appId = BuildConfig.WIDGET_APP_ID
-        ) {
-            enableLogging = true
-            debugMode = true
-            
-            // Set custom widget URL if configured in .env.local
-            if (BuildConfig.WIDGET_BASE_URL.isNotEmpty()) {
-                widgetBaseUrl = BuildConfig.WIDGET_BASE_URL
-                widgetScriptUrl = "${BuildConfig.WIDGET_BASE_URL}/widget/${BuildConfig.WIDGET_APP_ID}"
-            }
-        }
-
-        // Set user - configuration from .env.local
-        Pylon.setUser(
-            email = BuildConfig.USER_EMAIL,
-            name = BuildConfig.USER_NAME
-        ) {
-            // Set optional fields if configured
-            if (BuildConfig.USER_AVATAR_URL.isNotEmpty()) {
-                avatarUrl = BuildConfig.USER_AVATAR_URL
-            }
-            if (BuildConfig.USER_EMAIL_HASH.isNotEmpty()) {
-                emailHash = BuildConfig.USER_EMAIL_HASH
-            }
-        }
-
         setContent {
             ChatWidgetDemoTheme(darkTheme = true) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -65,6 +36,37 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding)
                             .fillMaxSize()
                     )
+                }
+            }
+        }
+    }
+    
+    companion object {
+        // Build config and user from .env.local - used by compose components
+        fun buildConfig(): com.pylon.chatwidget.PylonConfig {
+            return com.pylon.chatwidget.PylonConfig.build(BuildConfig.WIDGET_APP_ID) {
+                enableLogging = true
+                debugMode = true
+                
+                // Set custom widget URL if configured in .env.local
+                if (BuildConfig.WIDGET_BASE_URL.isNotEmpty()) {
+                    widgetBaseUrl = BuildConfig.WIDGET_BASE_URL
+                    widgetScriptUrl = "${BuildConfig.WIDGET_BASE_URL}/widget/${BuildConfig.WIDGET_APP_ID}"
+                }
+            }
+        }
+        
+        fun buildUser(): com.pylon.chatwidget.PylonUser {
+            return com.pylon.chatwidget.PylonUser.build(
+                email = BuildConfig.USER_EMAIL,
+                name = BuildConfig.USER_NAME
+            ) {
+                // Set optional fields if configured
+                if (BuildConfig.USER_AVATAR_URL.isNotEmpty()) {
+                    avatarUrl = BuildConfig.USER_AVATAR_URL
+                }
+                if (BuildConfig.USER_EMAIL_HASH.isNotEmpty()) {
+                    emailHash = BuildConfig.USER_EMAIL_HASH
                 }
             }
         }
@@ -456,9 +458,12 @@ fun PylonChatHost(
     onControllerChanged: (PylonChatController?) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val config = remember { MainActivity.buildConfig() }
+    val user = remember { MainActivity.buildUser() }
+    
     AndroidView(
         factory = { context ->
-            Pylon.createChat(context).also { controller ->
+            Pylon.createChat(context, config, user).also { controller ->
                 onControllerChanged(controller)
             }.view
         },

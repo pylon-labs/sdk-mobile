@@ -1,0 +1,31 @@
+{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "prebuild": "expo prebuild --clean",
+    "start": "expo start",
+    "android": "JAVA_HOME=$(/usr/libexec/java_home -v 17 2>/dev/null || /usr/libexec/java_home) expo run:android",
+    "ios": "LANG=en_US.UTF-8 expo run:ios",
+    "web": "expo start --web",
+    "pods": "cd ios && LANG=en_US.UTF-8 pod install && cd ..",
+    "pods:clean": "cd ios && rm -rf Pods Podfile.lock && cd .. && npm run pods",
+    "rebuild:ios": "chmod +x rebuild.sh && ./rebuild.sh",
+    "rebuild:android": "chmod +x rebuild-android.sh && ./rebuild-android.sh",
+    "check-java": "/usr/libexec/java_home -V"
+  },
+  "dependencies": {
+    "@pylon/react-native-chat": "file:..",
+    "expo": "~54.0.25",
+    "expo-dev-client": "~6.0.18",
+    "expo-status-bar": "~3.0.8",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "5.6.2"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.0",
+    "typescript": "~5.9.2"
+  },
+  "private": true
+}

@@ -29,11 +29,40 @@ import org.json.JSONObject
  * Custom WebView widget for Pylon Chat
  */
 @SuppressLint("SetJavaScriptEnabled")
-class PylonChat @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : FrameLayout(context, attrs, defStyleAttr) {
+class PylonChat : FrameLayout {
+    
+    private val config: PylonConfig
+    private var user: PylonUser?
+    
+    /**
+     * Create a PylonChat view with explicit configuration and user.
+     * This is the recommended constructor for React Native and programmatic usage.
+     */
+    @JvmOverloads
+    constructor(
+        context: Context,
+        config: PylonConfig,
+        user: PylonUser? = null
+    ) : super(context) {
+        this.config = config
+        this.user = user
+        initialize()
+    }
+    
+    /**
+     * XML/AttributeSet constructor - uses singleton Pylon configuration.
+     * Only for compatibility with XML layouts.
+     */
+    @JvmOverloads
+    constructor(
+        context: Context,
+        attrs: AttributeSet? = null,
+        defStyleAttr: Int = 0
+    ) : super(context, attrs, defStyleAttr) {
+        this.config = Pylon.requireConfig()
+        this.user = Pylon.currentUser()
+        initialize()
+    }
 
     companion object {
         private const val TAG = "PylonWidget"
@@ -107,9 +136,9 @@ class PylonChat @JvmOverloads constructor(
         visibility = View.GONE
     }
 
-    init {
+    private fun initialize() {
         addView(webView)
-        if (Pylon.requireConfig().debugMode) {
+        if (config.debugMode) {
             addView(debugOverlay)
             debugOverlay.visibility = View.VISIBLE
             debugOverlay.bounds = interactiveBounds
@@ -120,6 +149,21 @@ class PylonChat @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         ensurePylonLoaded()
+    }
+
+    /**
+     * Check if a touch at the given coordinates should be handled by this view.
+     * Used by wrappers (e.g. React Native) to determine touch pass-through behavior.
+     */
+    fun shouldHandleTouchAt(x: Float, y: Float): Boolean {
+        if (isChatWindowOpen) {
+            return true
+        }
+
+        val (ix, iy) = x.toInt() to y.toInt()
+        return interactiveBounds.any { (_, bounds) ->
+            !bounds.isEmpty && bounds.contains(ix, iy)
+        }
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
@@ -188,7 +232,6 @@ class PylonChat @JvmOverloads constructor(
         webView.webChromeClient = object : WebChromeClient() {
             override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
                 consoleMessage?.let { msg ->
-                    val config = Pylon.requireConfig()
                     if (config.enableLogging) {
                         val logMessage = "[${msg.messageLevel()}] ${msg.sourceId()}:${msg.lineNumber()} - ${msg.message()}"
                         Log.d(TAG, logMessage)
@@ -308,8 +351,6 @@ class PylonChat @JvmOverloads constructor(
 
         if (hasStartedLoading) return
 
-        val config = Pylon.requireConfig()
-        val user = Pylon.currentUser()
         val html = generateHtml(config, user)
         hasStartedLoading = true
         webView.loadDataWithBaseURL(
@@ -322,9 +363,6 @@ class PylonChat @JvmOverloads constructor(
     }
 
     private fun initializePylon() {
-        val config = Pylon.requireConfig()
-        val user = Pylon.currentUser()
-
         val settingsObject = buildChatSettings(config, user)
         val jsCode = """
             javascript:(function() {
@@ -421,6 +459,20 @@ class PylonChat @JvmOverloads constructor(
         val idArg = JSONObject.quote(articleId)
         invokePylonCommand("showKnowledgeBaseArticle", idArg)
     }
+    
+    fun clickElementBySelector(selector: String) {
+        // Trigger a click on the element with the given ID selector.
+        // Used by React Native's Android proxy-based touch pass-through system.
+        val jsCode = """
+            (function() {
+                var element = document.getElementById('$selector');
+                if (element && element.click) {
+                    element.click();
+                }
+            })();
+        """.trimIndent()
+        webView.evaluateJavascript(jsCode, null)
+    }
 
     fun updateEmailHash(emailHash: String?) {
         Pylon.setEmailHash(emailHash)
@@ -434,6 +486,24 @@ class PylonChat @JvmOverloads constructor(
 
     fun setListener(listener: PylonChatListener?) {
         this.listener = listener
+    }
+    
+    /**
+     * Update the user for this chat instance and reload.
+     */
+    fun setUser(user: PylonUser?) {
+        this.user = user
+        if (isLoaded) {
+            initializePylon()
+        }
+    }
+    
+    /**
+     * Update the email hash for the current user.
+     */
+    fun setEmailHash(emailHash: String?) {
+        val currentUser = this.user ?: error("Set user before calling setEmailHash().")
+        setUser(currentUser.copy(emailHash = emailHash))
     }
 
     fun setPylonListener(listener: PylonChatListener) {
@@ -550,15 +620,15 @@ class PylonChat @JvmOverloads constructor(
     }
 
     private fun buildChatSettings(config: PylonConfig, user: PylonUser?): String {
-        val fields = mutableListOf("app_id: '${config.appId}'")
-        config.primaryColor?.let { fields += "primary_color: '$it'" }
+        val fields = mutableListOf("app_id: '${escapeJavaScriptString(config.appId)}'")
+        config.primaryColor?.let { fields += "primary_color: '${escapeJavaScriptString(it)}'" }
         if (user != null) {
-            fields += "email: '${user.email}'"
-            fields += "name: '${user.name}'"
-            user.avatarUrl?.let { fields += "avatar_url: '$it'" }
-            user.emailHash?.let { fields += "email_hash: '$it'" }
-            user.accountId?.let { fields += "account_id: '$it'" }
-            user.accountExternalId?.let { fields += "account_external_id: '$it'" }
+            fields += "email: '${escapeJavaScriptString(user.email)}'"
+            fields += "name: '${escapeJavaScriptString(user.name)}'"
+            user.avatarUrl?.let { fields += "avatar_url: '${escapeJavaScriptString(it)}'" }
+            user.emailHash?.let { fields += "email_hash: '${escapeJavaScriptString(it)}'" }
+            user.accountId?.let { fields += "account_id: '${escapeJavaScriptString(it)}'" }
+            user.accountExternalId?.let { fields += "account_external_id: '${escapeJavaScriptString(it)}'" }
         }
 
         val joined = fields.joinToString(
@@ -567,6 +637,16 @@ class PylonChat @JvmOverloads constructor(
             postfix = "\n                    }"
         )
         return joined
+    }
+    
+    private fun escapeJavaScriptString(string: String): String {
+        return string
+            .replace("\\", "\\\\")
+            .replace("'", "\\'")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
     }
 
 
@@ -615,7 +695,11 @@ class PylonChat @JvmOverloads constructor(
             post {
                 log("Updating interactive bounds for: $selector ($left, $top) - ($right, $bottom)")
                 interactiveBounds[selector]?.set(left.toInt(), top.toInt(), right.toInt(), bottom.toInt())
-                if (Pylon.requireConfig().debugMode) {
+                
+                // Notify listener about bounds change
+                listener?.onInteractiveBoundsChanged(selector, left, top, right, bottom)
+                
+                if (config.debugMode) {
                     debugOverlay.bounds = interactiveBounds
                 }
             }

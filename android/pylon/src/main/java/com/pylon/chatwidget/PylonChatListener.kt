@@ -59,4 +59,18 @@ interface PylonChatListener {
     fun onUnreadCountChanged(unreadCount: Int) {
         // Default implementation - can be overridden if needed
     }
+
+    /**
+     * Called whenever interactive element bounds change.
+     * Used by React Native to position proxy touch targets.
+     *
+     * @param selector The CSS selector of the interactive element
+     * @param left The left coordinate in pixels
+     * @param top The top coordinate in pixels
+     * @param right The right coordinate in pixels
+     * @param bottom The bottom coordinate in pixels
+     */
+    fun onInteractiveBoundsChanged(selector: String, left: Float, top: Float, right: Float, bottom: Float) {
+        // Default implementation - can be overridden if needed
+    }
 }
