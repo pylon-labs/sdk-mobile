@@ -356,6 +356,18 @@ export default function App() {
 
 ---
 
+## Known Limitations
+
+### Android: Clickable Elements in Chat Widget
+
+**Issue:** On Android React Native specifically, clickable elements associated with an unopened chat widget (such as surveys) besides the chat bubble do not currently work. The chat bubble itself functions correctly for opening and closing the widget.
+
+**Workaround:** This is a known platform limitation related to touch event handling between React Native and Android.
+
+**Need this functionality?** Please contact the Pylon team if your application requires interactive elements like surveys in the Android React Native chat widget. We'd love to hear about your use case and prioritize a smarter React Native Android touch handler.
+
+---
+
 ## Troubleshooting
 
 ### Android: Java Version Issues
