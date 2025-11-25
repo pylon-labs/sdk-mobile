@@ -7,6 +7,7 @@ import { StatusBar } from "expo-status-bar";
 import React, { useRef, useState } from "react";
 import {
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Switch,
@@ -36,11 +37,26 @@ function AppContent() {
   const [showModal, setShowModal] = useState(false);
 
   // Configuration - loads from .env file (copy env.example to .env)
+  // Use platform-specific base URL for local development
+  const getWidgetBaseUrl = () => {
+    if (Platform.OS === "ios") {
+      return (
+        process.env.EXPO_PUBLIC_PYLON_WIDGET_BASE_URL_IOS ||
+        process.env.EXPO_PUBLIC_PYLON_WIDGET_BASE_URL ||
+        "https://widget.usepylon.com"
+      );
+    } else {
+      return (
+        process.env.EXPO_PUBLIC_PYLON_WIDGET_BASE_URL_ANDROID ||
+        process.env.EXPO_PUBLIC_PYLON_WIDGET_BASE_URL ||
+        "https://widget.usepylon.com"
+      );
+    }
+  };
+
   const config = {
     appId: process.env.EXPO_PUBLIC_PYLON_APP_ID,
-    widgetBaseUrl:
-      process.env.EXPO_PUBLIC_PYLON_WIDGET_BASE_URL ||
-      "https://widget.usepylon.com",
+    widgetBaseUrl: getWidgetBaseUrl(),
     enableLogging: process.env.EXPO_PUBLIC_PYLON_ENABLE_LOGGING === "true",
     debugMode: process.env.EXPO_PUBLIC_PYLON_DEBUG_MODE === "true",
   };

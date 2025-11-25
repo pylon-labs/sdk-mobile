@@ -72,6 +72,8 @@ expo prebuild
 expo run:ios  # or expo run:android
 ```
 
+---
+
 ## Usage
 
 ```tsx
@@ -401,12 +403,11 @@ cp env.example .env
 # Edit .env with your Pylon app ID
 
 # First time setup or after native changes
-npm run rebuild:android  # Clean rebuild for Android
-# or
-expo prebuild --clean     # For iOS/Android
+npm run rebuild          # Clean rebuild for both iOS and Android
 
 # Run the app
-npm run ios      # or npm run android
+npm run start            # Start Expo dev server
+# Press 'i' for iOS, 'a' for Android, 'w' for web
 ```
 
 ### Demo App Architecture
@@ -446,30 +447,41 @@ export default function App() {
 
 The demo app includes helper scripts in `package.json`:
 
-**`npm run rebuild:android`**
+**`npm run start`** (Primary command)
 
-- Cleans all Android build artifacts
-- Copies latest native SDK files
-- Runs `expo prebuild --clean`
-- Verifies Java 17 installation
-- Use after: changing native code, updating dependencies
+- Starts Expo dev server
+- Shows QR code and keyboard shortcuts
+- Press 'i' for iOS, 'a' for Android, 'w' for web
+- Use this for daily development
 
-**`npm run android`**
+**`npm run rebuild`** (After native changes)
 
-- Sets `JAVA_HOME` to Java 17 automatically
-- Builds and launches on Android emulator/device
-- Faster than full rebuild for code-only changes
+- Cleans all build artifacts (iOS + Android)
+- Copies latest native SDK files from parent directories
+- Runs `expo prebuild --clean` (generates both iOS and Android projects)
+- Verifies Java 17 and Xcode installation
+- Use after: changing native bridge code, updating SDK, troubleshooting build issues
 
-**`npm run ios`**
+**`npm run prebuild`** (Advanced)
 
-- Builds and launches on iOS simulator
-- No special Java requirements
+- Force clean Expo prebuild
+- Regenerates iOS and Android native projects
+- Rarely needed (use `rebuild` instead)
 
-**`npm run start`**
+**`npm run pods:install`** (iOS maintenance)
 
-- Starts Metro bundler
-- Shows QR code for development builds
-- Use with: Expo Go (limited) or development builds
+- Installs iOS CocoaPods dependencies
+- Rarely needed manually (Expo handles this)
+
+**`npm run pods:clean`** (iOS troubleshooting)
+
+- Cleans and reinstalls iOS CocoaPods
+- Use if you encounter pod-related errors
+
+**`npm run check-java`** (Utility)
+
+- Shows all installed Java versions
+- Helps verify Java 17 is installed for Android builds
 
 ### Environment Variables
 
