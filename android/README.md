@@ -1,72 +1,68 @@
-# Pylon Chat Widget - Android SDK
+# Pylon Chat SDK for Android
 
 Add Pylon's chat widget to your Android application to enable in-app customer support.
 
 ## Requirements
 
-- Android SDK 24 (Android 7.0) or higher
+- Android SDK 24 (Android 7.0)+
 - Kotlin 1.9+
 - Java 11+
 
+---
+
 ## Installation
 
-### 1. Add the SDK to your project
+This SDK is distributed as source code. Clone or download the repository:
 
-Add the Pylon Chat SDK to your app's `build.gradle.kts`:
+```bash
+git clone https://github.com/pylon-labs/sdk-mobile.git
+cd sdk-mobile/android
+```
+
+### 1. Copy the SDK Module
+
+Copy the `pylon/` directory into your Android project:
+
+```bash
+# From your Android project root
+cp -r /path/to/sdk-mobile/android/pylon ./
+```
+
+### 2. Include the Module
+
+Add to your `settings.gradle.kts`:
+
+```kotlin
+include(":pylon")
+```
+
+### 3. Add Dependency
+
+Add to your app's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
     implementation(project(":pylon"))
+    // ... your other dependencies
 }
 ```
 
-### 2. Update settings.gradle.kts
+### 4. Get Your Pylon App ID
 
-Make sure the SDK module is included in your `settings.gradle.kts`:
-
-```kotlin
-include(":app")
-include(":pylon")
-```
-
-## Demo App
-
-### 1. Set environment variables for demo app
-
-The demo app uses `.env.local` for easy configuration. Copy the example file and add your credentials:
-
-```bash
-cp env.local.example .env.local
-```
-
-Edit `.env.local` with your Pylon account details:
-
-```bash
-# Get your app ID from https://app.usepylon.com/settings/chat-widget
-WIDGET_APP_ID=your-app-id-from-pylon
-
-# Test user for the demo app
-USER_EMAIL=john@yourcompany.com
-USER_NAME=John Doe
-```
-
-### 2. Run the Demo App
-
-Open the project in Android Studio and run the `app` module. The demo app will automatically use your configuration from `.env.local`.
-
-**Note:** The demo app's configuration is in `app/src/main/java/com/example/chatwidgetdemo/MainActivity.kt` - this is for testing only. In your own app, you'll initialize the SDK directly in your code.
+1. Login to [app.usepylon.com](https://app.usepylon.com)
+2. Go to Settings → Chat Widget
+3. Copy your App ID
 
 ---
 
-## Integration Guide
+## Quick Start
 
-### Initialize the SDK
+### 1. Initialize the SDK
 
-In your own app, initialize Pylon in your Application class or Activity's `onCreate()`:
+In your Application class or Activity's `onCreate()`:
 
 ```kotlin
 import com.pylon.chatwidget.Pylon
-import com.pylon.chatwidget.PylonUser
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,9 +83,9 @@ class MainActivity : AppCompatActivity() {
 }
 ```
 
-### Add the Chat Widget
+### 2. Add the Chat Widget
 
-#### Jetpack Compose
+**Jetpack Compose:**
 
 ```kotlin
 import com.pylon.chatwidget.Pylon
@@ -103,6 +99,7 @@ fun MyScreen() {
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Your app content
+        MyAppContent()
 
         // Pylon Chat Widget
         AndroidView(
@@ -122,7 +119,7 @@ fun MyScreen() {
 }
 ```
 
-#### XML Layout
+**XML Layout:**
 
 ```xml
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -130,6 +127,11 @@ fun MyScreen() {
     android:layout_height="match_parent">
 
     <!-- Your app content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <!-- ... -->
+    </LinearLayout>
 
     <!-- Pylon Chat Widget -->
     <com.pylon.chatwidget.PylonChat
@@ -140,27 +142,53 @@ fun MyScreen() {
 ```
 
 ```kotlin
-val pylonChat = findViewById<PylonChat>(R.id.pylonChat)
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val pylonChat = findViewById<PylonChat>(R.id.pylonChat)
+    }
+}
 ```
 
-## Configuration Options
+---
+
+## API Reference
+
+### Initialization
 
 ```kotlin
+// Basic initialization
+Pylon.initialize(
+    context,
+    appId = "YOUR_APP_ID"
+)
+
+// With optional configuration
 Pylon.initialize(
     context,
     appId = "YOUR_APP_ID"
 ) {
-    primaryColor = "#FF5733"                      // Custom brand color
-    widgetBaseUrl = "https://widget.usepylon.com" // Custom widget URL
-    widgetScriptUrl = "https://..."               // Custom script URL
+    enableLogging = true   // Enable debug logs (default: true)
+    debugMode = false      // Show debug overlay (default: false)
+
+    // widgetBaseUrl = "http://10.0.2.2:9002" // likely do not need this
 }
 ```
 
-## User Management
+### User Management
 
-### Set User
+**Set User:**
 
 ```kotlin
+// Basic user
+Pylon.setUser(
+    email = "user@example.com",
+    name = "John Doe"
+)
+
+// With optional fields
 Pylon.setUser(
     email = "user@example.com",
     name = "John Doe"
@@ -170,12 +198,19 @@ Pylon.setUser(
     accountId = "account_123"
     accountExternalId = "external_id_456"
 }
+
+// Or using object
+val user = PylonUser(
+    email = "user@example.com",
+    name = "John Doe"
+)
+Pylon.setUser(user)
 ```
 
-### Update User
+**Update User:**
 
 ```kotlin
-pylonChat.updateUser(
+chatController.updateUser(
     PylonUser(
         email = "newuser@example.com",
         name = "Jane Doe"
@@ -183,17 +218,25 @@ pylonChat.updateUser(
 )
 ```
 
-### Clear User (e.g., on logout)
+**Clear User (on logout):**
 
 ```kotlin
 Pylon.clearUser()
 ```
 
-## Chat Controls
+### Creating Chat Views
 
 ```kotlin
+// Create a chat controller
 val chatController = Pylon.createChat(context)
 
+// Access the view
+val chatView = chatController.view
+```
+
+### Chat Controls
+
+```kotlin
 // Show/hide chat window
 chatController.openChat()
 chatController.closeChat()
@@ -203,16 +246,17 @@ chatController.showChatBubble()
 chatController.hideChatBubble()
 ```
 
-## Advanced Features
-
-### Send Messages from Your App
+### Sending Messages
 
 ```kotlin
+// Plain text message
 chatController.showNewMessage("Hello from the app!", isHtml = false)
+
+// HTML message
 chatController.showNewMessage("<p>Hello <strong>HTML</strong>!</p>", isHtml = true)
 ```
 
-### Set Custom Fields
+### Custom Fields
 
 ```kotlin
 chatController.setNewIssueCustomFields(
@@ -224,7 +268,7 @@ chatController.setNewIssueCustomFields(
 )
 ```
 
-### Show Specific Forms
+### Form Navigation
 
 ```kotlin
 // Show a ticket form
@@ -232,11 +276,8 @@ chatController.showTicketForm("support-request")
 
 // Show a knowledge base article
 chatController.showKnowledgeBaseArticle("article-id-123")
-```
 
-### Set Ticket Form Fields
-
-```kotlin
+// Pre-fill ticket form fields
 chatController.setTicketFormFields(
     mapOf(
         "subject" to "Issue from Android app",
@@ -252,7 +293,7 @@ chatController.setTicketFormFields(
 chatController.setEmailHash("sha256_hashed_email")
 ```
 
-## Event Listeners
+### Event Listeners
 
 ```kotlin
 import com.pylon.chatwidget.PylonChatListener
@@ -294,20 +335,7 @@ val listener = object : PylonChatListener {
 chatController.setListener(listener)
 ```
 
-## File Upload Support
-
-Handle file picker results in your Activity:
-
-```kotlin
-class MainActivity : AppCompatActivity() {
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (Pylon.handleActivityResult(resultCode, data)) return
-        super.onActivityResult(requestCode, resultCode, data)
-    }
-}
-```
-
-## Cleanup
+### Cleanup
 
 ```kotlin
 override fun onDestroy() {
@@ -316,10 +344,133 @@ override fun onDestroy() {
 }
 ```
 
-## Example
+---
 
-See the `app` module for a complete demo application with all features.
+## Usage Patterns
+
+### Application-Wide Initialization
+
+```kotlin
+class MyApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+
+        // Initialize once for the entire app
+        Pylon.initialize(this, appId = "YOUR_APP_ID")
+    }
+}
+```
+
+Don't forget to register in `AndroidManifest.xml`:
+
+```xml
+<application
+    android:name=".MyApplication"
+    ...>
+```
+
+### Conditional Rendering (User Login)
+
+```kotlin
+@Composable
+fun MyApp() {
+    val currentUser by viewModel.currentUser.collectAsState()
+    var pylonChat by remember { mutableStateOf<PylonChatController?>(null) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        MyContent()
+
+        // Only show chat when logged in
+        if (currentUser != null) {
+            AndroidView(
+                factory = { context ->
+                    Pylon.setUser(
+                        email = currentUser!!.email,
+                        name = currentUser!!.name
+                    )
+                    Pylon.createChat(context).also { pylonChat = it }.view
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+
+    // Clear user on logout
+    LaunchedEffect(currentUser) {
+        if (currentUser == null) {
+            Pylon.clearUser()
+        }
+    }
+}
+```
+
+### Setting Metadata
+
+```kotlin
+class MainActivity : AppCompatActivity() {
+    private lateinit var chatController: PylonChatController
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        chatController = Pylon.createChat(this)
+
+        // Set custom fields for all new issues
+        chatController.setNewIssueCustomFields(
+            mapOf(
+                "app_version" to BuildConfig.VERSION_NAME,
+                "platform" to "android",
+                "device" to Build.MODEL,
+                "android_version" to Build.VERSION.RELEASE
+            )
+        )
+    }
+}
+```
+
+---
+
+## Architecture
+
+The Android SDK consists of several Kotlin files in the `com.pylon.chatwidget` package:
+
+**Core Files:**
+
+- `Pylon.kt` - Singleton for SDK initialization and configuration
+- `PylonChat.kt` - Main view that embeds the widget
+- `PylonChatController.kt` - Controller for imperative API
+- `PylonUser.kt` - User data model
+- `PylonConfig.kt` - Configuration model
+- `PylonChatListener.kt` - Event listener interface
+
+**How it works:**
+
+```
+PylonChat (View)
+  └── WebView
+      ├── Loads widget from widget.usepylon.com/widget/{appId}
+      ├── JavaScript ↔ Kotlin bridge (evaluateJavascript)
+      ├── Touch event interception (dispatchTouchEvent)
+      └── Dynamic bounds tracking for interactive elements
+```
+
+**Key features:**
+
+- WebView-based (same widget as web SDK)
+- Native touch handling with smart pass-through
+- JavaScript bridge for API calls and events
+- String escaping for XSS prevention
+- URL encoding for parameters
+- No external dependencies (except Android WebView)
+
+---
+
+## Demo App
+
+See [`app/README.md`](./app/README.md) for a complete example application demonstrating all SDK features.
+
+---
 
 ## Support
 
-For issues or questions, visit [usepylon.com](https://usepylon.com) or contact support@usepylon.com
+For issues or questions, pleaes reach out to the Pylon team.

@@ -590,16 +590,6 @@ public class PylonChatView: UIView {
 
     public func updateEmailHash(_ emailHash: String?) {
         Pylon.shared.setEmailHash(emailHash)
-        if let currentUser = self.user {
-            self.user = PylonUser(
-                email: currentUser.email,
-                name: currentUser.name,
-                avatarUrl: currentUser.avatarUrl,
-                emailHash: emailHash,
-                accountId: currentUser.accountId,
-                accountExternalId: currentUser.accountExternalId
-            )
-        }
         initializePylon()
     }
 

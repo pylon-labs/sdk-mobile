@@ -1,14 +1,6 @@
 # Pylon Chat SDK for React Native
 
-React Native wrapper for the Pylon Chat iOS and Android SDKs.
-
-## Installation
-
-```bash
-npm install @pylon/react-native-chat
-# or
-yarn add @pylon/react-native-chat
-```
+Add Pylon's chat widget to your React Native application to enable in-app customer support.
 
 ## Requirements
 
@@ -16,65 +8,71 @@ yarn add @pylon/react-native-chat
 - iOS >= 13.0
 - Android minSdkVersion >= 24
 
-**Note:** This package uses native modules. For Expo projects, you'll need to use a [development build](https://docs.expo.dev/develop/development-builds/introduction/).
-
-## Setup
-
-### Environment Configuration (Recommended)
-
-For better configuration management, in the demo apps/your own application:
-
-1. Copy the example environment file:
-
-   ```bash
-   cp env.example .env
-   ```
-
-2. Edit `.env` with your Pylon app ID and settings:
-
-   ```bash
-   EXPO_PUBLIC_PYLON_APP_ID=your-app-id-here
-   EXPO_PUBLIC_PYLON_USER_EMAIL=demo@example.com
-   EXPO_PUBLIC_PYLON_USER_NAME=Demo User
-   ```
-
-3. Use environment variables in your app:
-   ```tsx
-   const config = {
-     appId: process.env.EXPO_PUBLIC_PYLON_APP_ID,
-     widgetBaseUrl:
-       process.env.EXPO_PUBLIC_PYLON_WIDGET_BASE_URL ||
-       "https://widget.usepylon.com",
-     enableLogging: process.env.EXPO_PUBLIC_PYLON_ENABLE_LOGGING === "true",
-     debugMode: process.env.EXPO_PUBLIC_PYLON_DEBUG_MODE === "true",
-   };
-   ```
-
-### iOS
-
-The native module will automatically link via CocoaPods:
-
-```bash
-cd ios && pod install
-```
-
-### Android
-
-The native module will automatically link. No additional steps required.
-
-### Expo (Development Build Required)
-
-Since this package includes native code, managed Expo projects need to create a development build:
-
-```bash
-expo install expo-dev-client
-expo prebuild
-expo run:ios  # or expo run:android
-```
+**Note:** This package uses native modules. For Expo projects, you'll need a [development build](https://docs.expo.dev/develop/development-builds/introduction/).
 
 ---
 
-## Usage
+## Installation
+
+This SDK is distributed as source code and installed from a local directory.
+
+### Step 1: Clone the Repository
+
+Clone the SDK repository anywhere on your machine, but preferably forked into your own repository:
+
+```bash
+git clone https://github.com/pylon-labs/sdk-mobile.git
+```
+
+### Step 2: Install the Package
+
+From your React Native project root, install from the local path:
+
+```bash
+npm install /path/to/sdk-mobile/react-native
+# or
+yarn add file:/path/to/sdk-mobile/react-native
+```
+
+**What happens automatically:**
+
+- npm runs the `prepare` script (compiles TypeScript, copies native code)
+- Package is installed to `node_modules/@pylon/react-native-chat/`
+
+### Step 3: Link Native Code
+
+The SDK includes native Swift (iOS) and Kotlin (Android) code that needs to be linked to your app.
+
+**For Expo projects:**
+
+Expo apps don't have native folders by default. Generate them:
+
+```bash
+npx expo install expo-dev-client
+npx expo prebuild
+```
+
+This creates `ios/` and `android/` folders with the SDK's native code linked.
+
+**For bare React Native projects:**
+
+iOS requires CocoaPods linking:
+
+```bash
+cd ios && pod install && cd ..
+```
+
+Android auto-links automatically (no action needed).
+
+### Step 4: Get Your Pylon App ID
+
+1. Login to [app.usepylon.com](https://app.usepylon.com)
+2. Go to Settings → Chat Widget
+3. Copy your App ID
+
+---
+
+## Quick Start
 
 ```tsx
 import { PylonChatView, type PylonChatViewRef } from "@pylon/react-native-chat";
@@ -85,10 +83,8 @@ export default function App() {
   const pylonRef = useRef<PylonChatViewRef>(null);
 
   const config = {
-    appId: "YOUR_APP_ID",
+    appId: "YOUR_APP_ID", // Get from app.usepylon.com/settings/chat-widget
     widgetBaseUrl: "https://widget.usepylon.com",
-    enableLogging: true,
-    debugMode: false,
   };
 
   const user = {
@@ -96,22 +92,16 @@ export default function App() {
     name: "User Name",
   };
 
-  const listener = {
-    onChatOpened: () => console.log("Chat opened"),
-    onChatClosed: (wasOpen) => console.log("Chat closed"),
-    onUnreadCountChanged: (count) => console.log("Unread:", count),
-  };
-
   return (
     <View style={styles.container}>
       {/* Your app content */}
+      <Text>My App Content</Text>
 
       {/* Pylon Chat Widget - renders as overlay */}
       <PylonChatView
         ref={pylonRef}
         config={config}
         user={user}
-        listener={listener}
         style={styles.chat}
       />
     </View>
@@ -132,203 +122,269 @@ const styles = StyleSheet.create({
 });
 ```
 
-## Imperative API
+---
+
+## API Reference
+
+### PylonChatView Props
+
+#### `config` (required)
 
 ```tsx
-// Control chat programmatically
+{
+  appId: string;           // Your Pylon app ID (required)
+  widgetBaseUrl?: string;  // Default: "https://widget.usepylon.com"
+  enableLogging?: boolean; // Enable debug logs (default: false)
+  debugMode?: boolean;     // Show debug overlay (default: false)
+}
+```
+
+#### `user` (required)
+
+```tsx
+{
+  email: string;               // User's email (required)
+  name: string;                // User's name (required)
+  avatarUrl?: string;          // User's avatar URL
+  emailHash?: string;          // SHA-256 hash for identity verification
+  accountId?: string;          // Your internal account ID
+  accountExternalId?: string;  // External system account ID
+}
+```
+
+#### `listener` (optional)
+
+Event callbacks for chat interactions:
+
+```tsx
+{
+  onPylonLoaded?: () => void;
+  onPylonInitialized?: () => void;
+  onPylonReady?: () => void;
+  onChatOpened?: () => void;
+  onChatClosed?: (wasOpen: boolean) => void;
+  onUnreadCountChanged?: (count: number) => void;
+  onMessageReceived?: (message: string) => void;
+  onPylonError?: (error: string) => void;
+}
+```
+
+#### `style` (optional)
+
+Standard React Native `ViewStyle`. Typically used to position the widget:
+
+```tsx
+style={{
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+}}
+```
+
+---
+
+### Imperative Methods (via ref)
+
+```tsx
+const pylonRef = useRef<PylonChatViewRef>(null);
+
+// Control chat window
 pylonRef.current?.openChat();
 pylonRef.current?.closeChat();
+
+// Control chat bubble
 pylonRef.current?.showChatBubble();
 pylonRef.current?.hideChatBubble();
-pylonRef.current?.showNewMessage("<p>Hello!</p>", true);
-pylonRef.current?.setNewIssueCustomFields({ priority: "high" });
+
+// Send messages programmatically
+pylonRef.current?.showNewMessage("Hello from the app!", false);
+pylonRef.current?.showNewMessage("<p><strong>HTML</strong> message</p>", true);
+
+// Set custom fields for new issues
+pylonRef.current?.setNewIssueCustomFields({
+  source: "mobile-app",
+  version: "1.2.3",
+  platform: Platform.OS,
+});
+
+// Show specific forms
+pylonRef.current?.showTicketForm("form-id");
+pylonRef.current?.showKnowledgeBaseArticle("article-id");
+
+// Pre-fill ticket form fields
+pylonRef.current?.setTicketFormFields({
+  subject: "Issue from mobile app",
+  description: "User reported...",
+});
+
+// Identity verification
+pylonRef.current?.updateEmailHash("sha256_hash");
 ```
 
-## Configuration
+---
 
-### PylonConfig
+## Usage Patterns
 
-| Property        | Type    | Required | Description                                        |
-| --------------- | ------- | -------- | -------------------------------------------------- |
-| `appId`         | string  | Yes      | Your Pylon app ID                                  |
-| `widgetBaseUrl` | string  | No       | Base URL for widget (default: widget.usepylon.com) |
-| `enableLogging` | boolean | No       | Enable debug logs (default: false)                 |
-| `debugMode`     | boolean | No       | Enable debug overlay (default: false)              |
-| `primaryColor`  | string  | No       | Primary color for widget                           |
+### Basic Setup with Event Listeners
 
-### PylonUser
+```tsx
+export default function App() {
+  const pylonRef = useRef<PylonChatViewRef>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-| Property            | Type   | Required | Description                                     |
-| ------------------- | ------ | -------- | ----------------------------------------------- |
-| `email`             | string | Yes      | User's email                                    |
-| `name`              | string | Yes      | User's name                                     |
-| `avatarUrl`         | string | No       | User's avatar URL                               |
-| `emailHash`         | string | No       | SHA-256 hash of email for identity verification |
-| `accountId`         | string | No       | Account ID                                      |
-| `accountExternalId` | string | No       | External account ID                             |
+  const config = {
+    appId: "YOUR_APP_ID",
+  };
 
-## Events
+  const user = {
+    email: "user@example.com",
+    name: "User Name",
+  };
 
-| Event                  | Parameters         | Description                  |
-| ---------------------- | ------------------ | ---------------------------- |
-| `onPylonLoaded`        | -                  | Widget loaded                |
-| `onPylonReady`         | -                  | Widget ready                 |
-| `onChatOpened`         | -                  | Chat window opened           |
-| `onChatClosed`         | `wasOpen: boolean` | Chat window closed           |
-| `onUnreadCountChanged` | `count: number`    | Unread message count changed |
-| `onMessageReceived`    | `message: string`  | New message received         |
-| `onPylonError`         | `error: string`    | Error occurred               |
+  const listener = {
+    onChatOpened: () => console.log("Chat opened"),
+    onChatClosed: (wasOpen) => console.log("Chat closed", wasOpen),
+    onUnreadCountChanged: (count) => setUnreadCount(count),
+    onMessageReceived: (msg) => console.log("New message:", msg),
+    onPylonError: (error) => console.error("Pylon error:", error),
+  };
 
-## Architecture
+  return (
+    <View style={{ flex: 1 }}>
+      <MyAppContent />
 
-### How It Works
+      {unreadCount > 0 && <Badge count={unreadCount} />}
 
-This package wraps the native iOS and Android Pylon Chat SDKs using React Native's native module system, providing a unified API across platforms while leveraging native performance and capabilities.
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ React Native App (JavaScript/TypeScript)                    │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ <PylonChatWidget />                                     │ │
-│ │ - Props: config, user, listener                         │ │
-│ │ - Ref: imperative methods (openChat, closeChat, etc.)  │ │
-│ └───────────────────────┬─────────────────────────────────┘ │
-│                         │ Native Bridge                     │
-│ ┌───────────────────────▼─────────────────────────────────┐ │
-│ │ Platform-Specific Native Module                         │ │
-│ │ iOS: RNPylonChatView.swift                             │ │
-│ │ Android: RNPylonChatView.kt                            │ │
-│ │ - Wraps native PylonChatView                           │ │
-│ │ - Handles props → native config conversion             │ │
-│ │ - Forwards events to JS via RCTEventEmitter            │ │
-│ └───────────────────────┬─────────────────────────────────┘ │
-│                         │                                   │
-│ ┌───────────────────────▼─────────────────────────────────┐ │
-│ │ Native SDK (PylonChatView)                              │ │
-│ │ iOS: PylonChat.swift                                    │ │
-│ │ Android: PylonChat.kt                                   │ │
-│ │ ┌─────────────────────────────────────────────────────┐ │ │
-│ │ │ WebView (Pylon Chat Widget)                         │ │ │
-│ │ │ - Loads widget from widget.usepylon.com             │ │ │
-│ │ │ - JavaScript ↔ Native bridge                        │ │ │
-│ │ │ - Touch event handling                              │ │ │
-│ │ │ - Real-time messaging (Pusher)                      │ │ │
-│ │ └─────────────────────────────────────────────────────┘ │ │
-│ └─────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+      <PylonChatView
+        ref={pylonRef}
+        config={config}
+        user={user}
+        listener={listener}
+        style={StyleSheet.absoluteFill}
+      />
+    </View>
+  );
+}
 ```
 
-### Build Process
+### With Safe Area Insets
 
-The React Native package is structured as a native module with TypeScript bindings:
+```tsx
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-**1. TypeScript Compilation (`npm run build`)**
+export default function App() {
+  const insets = useSafeAreaInsets();
 
-```bash
-tsc  # Compiles src/*.ts → lib/*.js + type definitions
+  return (
+    <View style={{ flex: 1 }}>
+      <MyAppContent />
+
+      <PylonChatView
+        config={config}
+        user={user}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+        }}
+      />
+    </View>
+  );
+}
 ```
 
-**2. Native SDK Sync (`npm run copy-sdks`)**
+### Conditional Rendering (User Login)
 
-```bash
-scripts/copy-native-sdks.sh
-# Copies latest native SDK code from parent directories:
-# - ios/PylonChat/ → react-native/ios/PylonChat/
-# - android/pylon/src/ → react-native/android/src/
+```tsx
+export default function App() {
+  const [currentUser, setCurrentUser] = useState(null);
+
+  return (
+    <View style={{ flex: 1 }}>
+      <MyAppContent />
+
+      {currentUser && (
+        <PylonChatView
+          config={{ appId: "YOUR_APP_ID" }}
+          user={{
+            email: currentUser.email,
+            name: currentUser.name,
+          }}
+          style={StyleSheet.absoluteFill}
+        />
+      )}
+    </View>
+  );
+}
 ```
 
-**3. Package Preparation (`npm run prepare`)**
+### Custom Fields and Metadata
 
-- Runs automatically before `npm publish`
-- Ensures TypeScript is compiled and native SDKs are synced
-- Called by: `npm install`, `npm pack`, `npm publish`
+```tsx
+export default function App() {
+  const pylonRef = useRef<PylonChatViewRef>(null);
 
-### Expo Prebuild
+  useEffect(() => {
+    // Set custom fields when component mounts
+    pylonRef.current?.setNewIssueCustomFields({
+      app_version: "1.2.3",
+      platform: Platform.OS,
+      device_model: DeviceInfo.getModel(),
+      user_tier: "premium",
+    });
+  }, []);
 
-For Expo projects, the native code needs to be generated before building:
-
-```bash
-expo prebuild
+  return (
+    <View style={{ flex: 1 }}>
+      <MyAppContent />
+      <PylonChatView
+        ref={pylonRef}
+        config={config}
+        user={user}
+        style={StyleSheet.absoluteFill}
+      />
+    </View>
+  );
+}
 ```
 
-This command:
-
-1. Reads your `app.json` and dependencies
-2. Generates `ios/` and `android/` directories
-3. Configures native projects with required modules
-4. Links our native module automatically via autolinking
-
-**After prebuild**, you have a standard React Native project that can be built with:
-
-- `expo run:ios` or `npx react-native run-ios`
-- `expo run:android` or `npx react-native run-android`
+---
 
 ## Troubleshooting
 
 ### Android: Java Version Issues
 
-**Error:** `Unsupported class file major version 69` or Java 25 incompatibility
+**Error:** `Unsupported class file major version 69`
 
-**Solution:** The Android build requires Java 17. Install it via Homebrew:
+**Solution:** Install Java 17:
 
 ```bash
 brew install openjdk@17
-```
-
-The demo app's `npm run android` script automatically uses Java 17, but for custom projects, you may need to set `JAVA_HOME`:
-
-```bash
 export JAVA_HOME=$(/usr/libexec/java_home -v 17)
-```
-
-To verify Java 17 is installed:
-
-```bash
-/usr/libexec/java_home -v 17
 ```
 
 ### iOS: CocoaPods Encoding Issues
 
 **Error:** `Unicode Normalization not appropriate for ASCII-8BIT`
 
-**Solution:** Set UTF-8 encoding before running pod install:
+**Solution:**
 
 ```bash
 export LANG=en_US.UTF-8
 cd ios && pod install
 ```
 
-You can add this to your `~/.zshrc` or `~/.bash_profile` to make it permanent.
-
-### Module Not Found / Invariant Violation
-
-**Error:** `Invariant Violation: View config not found for component RNPylonChatView`
-
-**Solution:** This means the native module wasn't compiled or linked. For Expo projects:
-
-```bash
-# Clean and rebuild
-rm -rf ios android .expo
-npx expo prebuild --clean
-npx expo run:ios  # or expo run:android
-```
-
-For bare React Native:
-
-```bash
-# iOS
-cd ios && pod install && cd ..
-npx react-native run-ios
-
-# Android
-npx react-native run-android
-```
-
 ### Expo: Development Build Required
 
 **Error:** `No development build installed`
 
-**Solution:** This package uses native modules and cannot run in Expo Go. You must create a development build:
+**Solution:** This package uses native modules and cannot run in Expo Go:
 
 ```bash
 npx expo install expo-dev-client
@@ -336,176 +392,88 @@ npx expo prebuild
 npx expo run:ios  # or expo run:android
 ```
 
-### Android Build Cache Issues
+### Module Not Found
 
-If you encounter persistent Android build errors, clean the build cache:
+**Error:** `Invariant Violation: View config not found for component RNPylonChatView`
 
-```bash
-cd android
-./gradlew clean
-cd ..
-rm -rf android/.gradle android/app/build
-npx expo run:android
-```
-
-### iOS Build Cache Issues
-
-If you encounter persistent iOS build errors:
+**Solution:** Clean and rebuild:
 
 ```bash
-cd ios
-rm -rf Pods Podfile.lock
-pod cache clean --all
-pod install
-cd ..
+# Expo
+rm -rf ios android .expo
+npx expo prebuild --clean
 npx expo run:ios
+
+# Bare React Native
+cd ios && pod install && cd ..
+npx react-native run-ios
 ```
 
 ### Touch Events Not Working
 
-If touches aren't passing through to views behind the chat bubble when it's collapsed:
+If touches aren't passing through to views behind the chat bubble:
 
-1. Make sure you're using `position: "absolute"` and covering the full screen
-2. The native SDK handles touch pass-through automatically
-3. Ensure you're not wrapping `PylonChatView` in additional `View` components that intercept touches
-
-Example correct layout:
+1. Use `position: "absolute"` and cover the full screen
+2. Don't wrap `PylonChatView` in additional Views that intercept touches
+3. The native SDK handles touch pass-through automatically
 
 ```tsx
+// ✅ Correct
 <View style={{ flex: 1 }}>
   <ScrollView>{/* Your content */}</ScrollView>
+  <PylonChatView style={StyleSheet.absoluteFill} {...props} />
+</View>
 
-  <PylonChatView
-    style={{
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-    }}
-    // ... props
-  />
+// ❌ Wrong - extra wrapper intercepts touches
+<View style={{ flex: 1 }}>
+  <ScrollView>{/* Your content */}</ScrollView>
+  <View style={StyleSheet.absoluteFill}>
+    <PylonChatView style={{ flex: 1 }} {...props} />
+  </View>
 </View>
 ```
 
+---
+
+## Architecture
+
+This package wraps the native iOS and Android Pylon Chat SDKs using React Native's native module system:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ React Native (JavaScript/TypeScript)                        │
+│ <PylonChatView />                                           │
+└───────────────────────┬─────────────────────────────────────┘
+                        │ Native Bridge
+┌───────────────────────▼─────────────────────────────────────┐
+│ Native Module (iOS: Swift, Android: Kotlin)                 │
+│ - RNPylonChatView.swift / RNPylonChatView.kt               │
+│ - Props → Native config conversion                          │
+│ - Event forwarding to JS                                    │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+┌───────────────────────▼─────────────────────────────────────┐
+│ Native SDK (PylonChat)                                      │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ WebView (Pylon Chat Widget)                             │ │
+│ │ - Loads from widget.usepylon.com                        │ │
+│ │ - JavaScript ↔ Native bridge                            │ │
+│ │ - Touch pass-through when collapsed                     │ │
+│ │ - Real-time messaging                                   │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+The widget is WebView-based, providing consistent functionality with the web SDK while native code handles platform-specific integration.
+
+---
+
 ## Demo App
 
-The `demo-app/` directory contains a complete Expo application demonstrating SDK integration and all available features.
+See [`demo-app/README.md`](./demo-app/README.md) for a complete example application demonstrating all SDK features.
 
-### Quick Start
+---
 
-```bash
-cd demo-app
-npm install
+## Support
 
-# Configure your app ID
-cp env.example .env
-# Edit .env with your Pylon app ID
-
-# First time setup or after native changes
-npm run rebuild          # Clean rebuild for both iOS and Android
-
-# Run the app
-npm run start            # Start Expo dev server
-# Press 'i' for iOS, 'a' for Android, 'w' for web
-```
-
-### Demo App Architecture
-
-The demo app showcases:
-
-1. **Environment Configuration**: Loads config from `.env` using `process.env.EXPO_PUBLIC_*`
-2. **Widget Integration**: Full-screen overlay pattern with touch pass-through
-3. **Imperative API**: All SDK methods exposed via ref
-4. **Event Handling**: Real-time updates (message counts, open/close events)
-5. **Interactive Testing**: Buttons to test all SDK features
-
-```tsx
-// demo-app/App.tsx (simplified)
-export default function App() {
-  const pylonRef = useRef<PylonChatViewRef>(null);
-  const insets = useSafeAreaInsets();
-
-  return (
-    <View style={{ flex: 1 }}>
-      <ScrollView>{/* Your app UI */}</ScrollView>
-
-      {/* Pylon widget as full-screen overlay */}
-      <PylonChatWidget
-        ref={pylonRef}
-        config={config}
-        user={user}
-        listener={eventHandlers}
-        topInset={-insets.top} // Adjust for safe area
-      />
-    </View>
-  );
-}
-```
-
-### Build Scripts
-
-The demo app includes helper scripts in `package.json`:
-
-**`npm run start`** (Primary command)
-
-- Starts Expo dev server
-- Shows QR code and keyboard shortcuts
-- Press 'i' for iOS, 'a' for Android, 'w' for web
-- Use this for daily development
-
-**`npm run rebuild`** (After native changes)
-
-- Cleans all build artifacts (iOS + Android)
-- Copies latest native SDK files from parent directories
-- Runs `expo prebuild --clean` (generates both iOS and Android projects)
-- Verifies Java 17 and Xcode installation
-- Use after: changing native bridge code, updating SDK, troubleshooting build issues
-
-**`npm run prebuild`** (Advanced)
-
-- Force clean Expo prebuild
-- Regenerates iOS and Android native projects
-- Rarely needed (use `rebuild` instead)
-
-**`npm run pods:install`** (iOS maintenance)
-
-- Installs iOS CocoaPods dependencies
-- Rarely needed manually (Expo handles this)
-
-**`npm run pods:clean`** (iOS troubleshooting)
-
-- Cleans and reinstalls iOS CocoaPods
-- Use if you encounter pod-related errors
-
-**`npm run check-java`** (Utility)
-
-- Shows all installed Java versions
-- Helps verify Java 17 is installed for Android builds
-
-### Environment Variables
-
-The demo app uses environment variables for configuration:
-
-```bash
-# .env file (gitignored)
-EXPO_PUBLIC_PYLON_APP_ID=your-app-id
-EXPO_PUBLIC_PYLON_WIDGET_BASE_URL=https://widget.usepylon.com
-EXPO_PUBLIC_PYLON_USER_EMAIL=user@example.com
-EXPO_PUBLIC_PYLON_USER_NAME=User Name
-EXPO_PUBLIC_PYLON_ENABLE_LOGGING=true
-EXPO_PUBLIC_PYLON_DEBUG_MODE=true
-```
-
-**Why `EXPO_PUBLIC_`?**
-Expo requires this prefix for environment variables to be accessible in your app code at build time. Without it, `process.env` values will be `undefined`.
-
-### Testing the Demo
-
-1. **Start the app**: The widget should load with a chat bubble
-2. **Test touch pass-through**: Tap outside the bubble - underlying UI should respond
-3. **Open chat**: Tap the bubble - chat window opens
-4. **Send messages**: Type and send test messages
-5. **Test API**: Use the control buttons to test imperative methods
-
-The demo app is set up to work with production (`widget.usepylon.com`) by default. For local development, see the parent `chatwidget-mobile-sdk/README.md` for taskrunner commands.
+For issues or questions, please reach out to the Pylon team.

@@ -1,62 +1,60 @@
-# Pylon Chat Widget - iOS SDK
+# Pylon Chat SDK for iOS
 
 Add Pylon's chat widget to your iOS application to enable in-app customer support.
 
 ## Requirements
 
-- iOS 14.0 or higher
+- iOS 14.0+
 - Swift 5.5+
 - Xcode 13.0+
 
-## Development Setup
-
-### Required: Configure Your App
-
-The DemoApp requires configuration before it can run. You must provide your own Pylon app ID.
-
-**Setup:**
-
-1. **Get your Pylon app ID** from https://app.usepylon.com/settings
-
-2. **Edit `DemoApp/EnvConfig.swift`** with your settings:
-
-   ```swift
-   enum EnvConfig {
-       static let widgetAppId = "your-app-id-here"
-       static let widgetBaseUrl = "http://localhost:9002"
-       static let userEmail = "your@email.com"
-       static let userName = "Your Name"
-       static let userAvatarUrl: String? = nil
-       static let userEmailHash: String? = nil
-   }
-   ```
-
-3. Build and run in Xcode (⌘R)
-
-The app will fail with a clear error message if you haven't configured your app ID.
-
-### Configuration Files
-
-- **`DemoApp/EnvConfig.swift`** - Your configuration (edit directly)
-- **`EnvConfig.swift.example`** - Reference template (copy to DemoApp/)
+---
 
 ## Installation
 
-### 1. Add the SDK to your project
+### Option 1: Copy Single File (Recommended)
 
-Drag the `PylonChat` framework into your Xcode project, or add it as a local Swift Package.
+This SDK is distributed as source code. Clone or download the repository:
 
-### 2. Import the SDK
-
-```swift
-import PylonChat
+```bash
+git clone https://github.com/pylon-labs/sdk-mobile.git
 ```
 
-## Usage
+Copy the SDK file directly into your Xcode project:
 
-### Initialize the SDK
+1. Locate `ios/PylonChat/PylonChat.swift` in the cloned repository
+2. Drag it into your Xcode project
+3. Make sure "Copy items if needed" is checked
+4. Add to your app target
 
-Initialize Pylon in your App's `init()` or AppDelegate:
+The SDK is a single Swift file with no external dependencies (except WebKit, which is part of iOS).
+
+### Option 2: Local Swift Package Manager
+
+**Note:** A published package for Swift Package Manager support will likely be added in the future.
+
+Add as a local package in Xcode:
+
+1. File → Add Package Dependencies
+2. Click "Add Local..."
+3. Select the `sdk-mobile` folder
+4. Click "Add Package"
+
+The `Package.swift` at the root defines the `PylonChat` library.
+
+### Get Your Pylon App ID
+
+1. Login to [app.usepylon.com](https://app.usepylon.com)
+2. Go to Settings → Chat Widget
+3. Copy your App ID
+
+---
+
+## Quick Start
+
+### 1. Initialize the SDK
+
+In your App's `init()` or AppDelegate:
 
 ```swift
 import SwiftUI
@@ -65,7 +63,7 @@ import PylonChat
 @main
 struct YourApp: App {
     init() {
-        // Initialize Pylon SDK
+        // Initialize Pylon
         Pylon.shared.initialize(appId: "YOUR_APP_ID")
 
         // Set user information
@@ -83,9 +81,9 @@ struct YourApp: App {
 }
 ```
 
-### Add the Chat Widget
+### 2. Add the Chat Widget
 
-#### SwiftUI
+**SwiftUI:**
 
 ```swift
 import SwiftUI
@@ -113,7 +111,7 @@ struct ContentView: View {
 }
 ```
 
-#### UIKit
+**UIKit:**
 
 ```swift
 import UIKit
@@ -144,22 +142,37 @@ class ViewController: UIViewController {
 }
 ```
 
-## Configuration Options
+---
+
+## API Reference
+
+### Initialization
 
 ```swift
+// Basic initialization
+Pylon.shared.initialize(appId: "YOUR_APP_ID")
+
+// With optional configuration
 Pylon.shared.initialize(
     appId: "YOUR_APP_ID",
-    primaryColor: "#FF5733",                      // Custom brand color
-    widgetBaseUrl: "https://widget.usepylon.com", // Custom widget URL
-    widgetScriptUrl: "https://..."                // Custom script URL
+    enableLogging: true,   // Enable debug logs (default: true)
+    debugMode: false       // Show debug overlay (default: false)
+    // widgetBaseUrl: "http://localhost:0001"  // likely do not need this
 )
 ```
 
-## User Management
+### User Management
 
-### Set User
+**Set User:**
 
 ```swift
+// Basic user
+Pylon.shared.setUser(
+    email: "user@example.com",
+    name: "John Doe"
+)
+
+// With optional fields
 Pylon.shared.setUser(
     email: "user@example.com",
     name: "John Doe",
@@ -168,11 +181,8 @@ Pylon.shared.setUser(
     accountId: "account_123",
     accountExternalId: "external_id_456"
 )
-```
 
-Or using the struct:
-
-```swift
+// Or using struct
 let user = PylonUser(
     email: "user@example.com",
     name: "John Doe",
@@ -181,24 +191,37 @@ let user = PylonUser(
 Pylon.shared.setUser(user)
 ```
 
-### Update User
+**Update User:**
 
 ```swift
 pylonChatView?.updateUser(
     PylonUser(
-        email: "newuser@example.com",
+        email: "newemail@example.com",
         name: "Jane Doe"
     )
 )
 ```
 
-### Clear User (e.g., on logout)
+**Clear User (on logout):**
 
 ```swift
 Pylon.shared.clearUser()
 ```
 
-## Chat Controls
+### Creating Chat Views
+
+```swift
+// Create a chat view
+let chatView = Pylon.shared.createChat()
+
+// For SwiftUI, use PylonChatHostView wrapper
+PylonChatHostView(
+    chatView: $pylonChatView,
+    unreadCount: $unreadCount
+)
+```
+
+### Chat Controls
 
 ```swift
 // Show/hide chat window
@@ -210,16 +233,17 @@ pylonChatView?.showChatBubble()
 pylonChatView?.hideChatBubble()
 ```
 
-## Advanced Features
-
-### Send Messages from Your App
+### Sending Messages
 
 ```swift
+// Plain text message
 pylonChatView?.showNewMessage("Hello from the app!", isHtml: false)
+
+// HTML message
 pylonChatView?.showNewMessage("<p>Hello <strong>HTML</strong>!</p>", isHtml: true)
 ```
 
-### Set Custom Fields
+### Custom Fields
 
 ```swift
 pylonChatView?.setNewIssueCustomFields([
@@ -229,7 +253,7 @@ pylonChatView?.setNewIssueCustomFields([
 ])
 ```
 
-### Show Specific Forms
+### Form Navigation
 
 ```swift
 // Show a ticket form
@@ -237,11 +261,8 @@ pylonChatView?.showTicketForm("support-request")
 
 // Show a knowledge base article
 pylonChatView?.showKnowledgeBaseArticle("article-id-123")
-```
 
-### Set Ticket Form Fields
-
-```swift
+// Pre-fill ticket form fields
 pylonChatView?.setTicketFormFields([
     "subject": "Issue from iOS app",
     "description": "User reported an issue"
@@ -255,11 +276,11 @@ pylonChatView?.setTicketFormFields([
 pylonChatView?.updateEmailHash("sha256_hashed_email")
 ```
 
-## Event Listeners
+### Event Listeners
+
+Implement the `PylonChatListener` protocol:
 
 ```swift
-import PylonChat
-
 class MyViewController: UIViewController, PylonChatListener {
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -269,42 +290,40 @@ class MyViewController: UIViewController, PylonChatListener {
     }
 
     func onPylonLoaded() {
-        // Widget has loaded
+        print("Widget has loaded")
     }
 
     func onPylonInitialized() {
-        // Widget is initialized with user data
+        print("Widget is initialized with user data")
     }
 
     func onPylonReady() {
-        // Widget JavaScript is ready
+        print("Widget JavaScript is ready")
     }
 
     func onChatOpened() {
-        // User opened the chat
+        print("User opened the chat")
     }
 
-    func onChatClosed() {
-        // User closed the chat
+    func onChatClosed(wasOpen: Bool) {
+        print("User closed the chat, was open: \(wasOpen)")
     }
 
     func onUnreadCountChanged(count: Int) {
-        // Unread message count changed
+        print("Unread messages: \(count)")
     }
 
     func onMessageReceived(message: String) {
-        // New message received
+        print("New message: \(message)")
     }
 
     func onPylonError(error: String) {
-        // Error occurred
+        print("Error: \(error)")
     }
 }
 ```
 
-### SwiftUI Listener
-
-For SwiftUI, extend the `PylonChatHostView.Coordinator`:
+**SwiftUI Event Handling:**
 
 ```swift
 struct ContentView: View {
@@ -323,22 +342,113 @@ struct ContentView: View {
         .onChange(of: unreadCount) { newCount in
             print("Unread count: \(newCount)")
         }
+        .onAppear {
+            // Access the view once created
+            if let chatView = pylonChatView {
+                // Set listener, call methods, etc.
+            }
+        }
     }
 }
 ```
 
-## Cleanup
+### Cleanup
 
-The SDK automatically cleans up when the view is deallocated, but you can manually clean up:
+The SDK automatically cleans up when the view is deallocated. For manual cleanup:
 
 ```swift
 pylonChatView?.destroy()
 ```
 
-## Example
+---
 
-See the `DemoApp` target for a complete demo application with all features.
+## Usage Patterns
+
+### Conditional Rendering (User Login)
+
+```swift
+struct ContentView: View {
+    @State private var currentUser: User?
+    @State private var pylonChatView: PylonChatView?
+    @State private var unreadCount = 0
+
+    var body: some View {
+        ZStack {
+            MyAppContent()
+
+            if let user = currentUser {
+                PylonChatHostView(
+                    chatView: $pylonChatView,
+                    unreadCount: $unreadCount
+                )
+                .onAppear {
+                    Pylon.shared.setUser(
+                        email: user.email,
+                        name: user.name
+                    )
+                }
+            }
+        }
+    }
+}
+```
+
+### Setting Metadata
+
+```swift
+class ChatViewController: UIViewController {
+    private var pylonChatView: PylonChatView!
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        pylonChatView = Pylon.shared.createChat()
+        // ... add to view ...
+
+        // Set custom fields for all new issues
+        pylonChatView.setNewIssueCustomFields([
+            "app_version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown",
+            "platform": "ios",
+            "device": UIDevice.current.model,
+            "ios_version": UIDevice.current.systemVersion
+        ])
+    }
+}
+```
+
+---
+
+## Architecture
+
+The iOS SDK is a single Swift file (`PylonChat.swift`) with no external dependencies (except WebKit, which is part of iOS).
+
+**How it works:**
+
+```
+PylonChatView
+  └── WKWebView
+      ├── Loads widget from widget.usepylon.com/widget/{appId}
+      ├── JavaScript ↔ Swift bridge (evaluateJavaScript)
+      ├── Touch event interception (hitTest)
+      └── Dynamic bounds tracking for interactive elements
+```
+
+**Key features:**
+
+- WebView-based (same widget as web SDK)
+- Native touch handling with smart pass-through
+- JavaScript bridge for API calls and events
+- String escaping for XSS prevention
+- URL encoding for parameters
+
+---
+
+## Demo App
+
+See [`DemoApp/README.md`](./DemoApp/README.md) for a complete example application demonstrating all SDK features.
+
+---
 
 ## Support
 
-For issues or questions, visit [usepylon.com](https://usepylon.com) or contact support@usepylon.com
+For issues or questions:, please reach out to the Pylon team.
