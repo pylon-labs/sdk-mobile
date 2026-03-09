@@ -1,6 +1,8 @@
 import React, { useImperativeHandle, useRef } from "react";
 import {
   findNodeHandle,
+  NativeModules,
+  Platform,
   requireNativeComponent,
   UIManager,
   ViewStyle,
@@ -94,7 +96,16 @@ export const PylonChatView = React.forwardRef<
 
   const dispatchCommand = (commandName: string, args: any[] = []) => {
     const handle = findNodeHandle(nativeRef.current);
-    if (handle) {
+    if (!handle) {
+      return;
+    }
+
+    if (Platform.OS === "ios") {
+      // iOS: RCT_EXTERN_METHOD exports are registered as native module methods,
+      // not view manager commands. UIManager.dispatchViewManagerCommand does not
+      // route to them, so we call through NativeModules instead.
+      NativeModules.RNPylonChatViewManager[commandName](handle, ...args);
+    } else {
       UIManager.dispatchViewManagerCommand(handle, commandName, args);
     }
   };

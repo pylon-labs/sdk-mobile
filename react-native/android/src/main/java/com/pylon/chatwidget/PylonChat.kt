@@ -476,16 +476,11 @@ class PylonChat : FrameLayout {
 
     fun updateEmailHash(emailHash: String?) {
         Pylon.setEmailHash(emailHash)
-        val currentUser = this.user
-        if (currentUser != null) {
-            this.user = currentUser.copy(emailHash = emailHash)
-        }
         initializePylon()
     }
 
     fun updateUser(user: PylonUser) {
         Pylon.setUser(user)
-        this.user = user
         initializePylon()
     }
 

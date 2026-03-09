@@ -8,7 +8,9 @@
     "prebuild": "expo prebuild --clean",
     "pods:install": "cd ios && LANG=en_US.UTF-8 pod install && cd ..",
     "pods:clean": "cd ios && rm -rf Pods Podfile.lock && cd .. && npm run pods:install",
-    "check-java": "/usr/libexec/java_home -V"
+    "check-java": "/usr/libexec/java_home -V",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@pylon/react-native-chat": "file:..",
