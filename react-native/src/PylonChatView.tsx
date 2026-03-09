@@ -1,12 +1,12 @@
 import React, { useImperativeHandle, useRef } from "react";
 import {
   findNodeHandle,
-  NativeModules,
   Platform,
   requireNativeComponent,
   UIManager,
   ViewStyle,
 } from "react-native";
+import NativePylonChatCommands from "./NativePylonChatCommands";
 import type { PylonChatListener, PylonConfig, PylonUser } from "./types";
 
 // Public API exposed to SDK users.
@@ -95,17 +95,26 @@ export const PylonChatView = React.forwardRef<
   const nativeRef = useRef(null);
 
   const dispatchCommand = (commandName: string, args: any[] = []) => {
-    const handle = findNodeHandle(nativeRef.current);
-    if (!handle) {
-      return;
-    }
-
     if (Platform.OS === "ios") {
-      // iOS: RCT_EXTERN_METHOD exports are registered as native module methods,
-      // not view manager commands. UIManager.dispatchViewManagerCommand does not
-      // route to them, so we call through NativeModules instead.
-      NativeModules.RNPylonChatViewManager[commandName](handle, ...args);
+      if (!NativePylonChatCommands) {
+        console.error(
+          `[PylonChat] NativePylonChatCommands module is null`,
+        );
+        return;
+      }
+      const fn = (NativePylonChatCommands as any)[commandName];
+      if (fn) {
+        fn(...args);
+      } else {
+        console.warn(
+          `[PylonChat] RNPylonChatCommands.${commandName} not available`,
+        );
+      }
     } else {
+      const handle = findNodeHandle(nativeRef.current);
+      if (!handle) {
+        return;
+      }
       UIManager.dispatchViewManagerCommand(handle, commandName, args);
     }
   };
@@ -133,13 +142,14 @@ export const PylonChatView = React.forwardRef<
       clickElementAtSelector: (selector: string) =>
         dispatchCommand(COMMANDS.clickElementAtSelector, [selector]),
     }),
-    []
+    [],
   );
 
   return (
     <NativePylonChatView
       ref={nativeRef}
       style={style}
+      pointerEvents="box-none"
       appId={config.appId}
       widgetBaseUrl={config.widgetBaseUrl}
       widgetScriptUrl={config.widgetScriptUrl}

@@ -100,6 +100,7 @@ class RNPylonChatView: UIView {
     
     private func setupView() {
         backgroundColor = .clear
+        RNPylonChatCommands.currentView = self
     }
     
     // Override pointInside to make React Native call hitTest
