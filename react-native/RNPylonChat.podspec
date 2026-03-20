@@ -13,10 +13,8 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => "13.0" }
   s.source       = { :git => "https://github.com/usepylon/pylon-chat-sdk.git", :tag => "#{s.version}" }
 
-  # Bridge files + Copied iOS SDK
   s.source_files = "ios/**/*.{h,m,mm,swift}"
-  
-  # Exclude demo apps
+
   s.exclude_files = [
     "demo-app/**/*",
     "../ios/DemoApp/**/*"
@@ -25,9 +23,7 @@ Pod::Spec.new do |s|
   s.requires_arc = true
   s.swift_version = "5.0"
 
-  s.dependency "React-Core"
-  
-  # WebKit is required by PylonChat SDK
   s.frameworks = "WebKit"
-end
 
+  install_modules_dependencies(s)
+end

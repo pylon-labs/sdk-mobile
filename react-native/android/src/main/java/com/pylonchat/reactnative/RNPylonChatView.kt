@@ -7,7 +7,8 @@ import android.widget.FrameLayout
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.uimanager.events.RCTEventEmitter
+import com.facebook.react.uimanager.UIManagerHelper
+import com.facebook.react.uimanager.events.Event
 import com.pylon.chatwidget.PylonChatListener
 import com.pylon.chatwidget.PylonChatView
 import com.pylon.chatwidget.PylonConfig
@@ -97,6 +98,11 @@ class RNPylonChatView(context: Context) : FrameLayout(context) {
             updateUser()
         }
 
+    var topInset: Float = 0f
+        set(value) {
+            field = value
+        }
+
     init {
         layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
     }
@@ -109,29 +115,33 @@ class RNPylonChatView(context: Context) : FrameLayout(context) {
     }
     
     /**
-     * This is the CRITICAL method for pointerEvents.
-     * By returning false here when pointerEvents="none", we tell React Native's
-     * touch system to pass the touch to views BEHIND this one, not just children.
+     * Touch routing for pointerEvents support.
+     *
+     * Under Fabric (New Architecture), React's JSTouchDispatcher intercepts touches
+     * on ancestor views before they reach native children like our WebView. When the
+     * PylonChatView determines it should handle a touch (bubble tap or open chat window),
+     * we call requestDisallowInterceptTouchEvent to prevent React from stealing the
+     * touch, then dispatch directly to the PylonChatView.
      */
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         when (pointerEventsMode) {
             "none" -> {
-                // Don't handle ANY touches - pass through to views BEHIND this one
                 return false
             }
             "box-none" -> {
-                // This view doesn't handle touches, but children can
-                // Try children first, if they don't handle it, pass through
-                val handled = super.dispatchTouchEvent(ev)
-                return handled  // If children didn't handle it, return false passes through
+                val pylon = pylonChatView ?: return false
+                if (pylon.shouldHandleTouchAt(ev.x, ev.y)) {
+                    if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+                        parent?.requestDisallowInterceptTouchEvent(true)
+                    }
+                    return pylon.dispatchTouchEvent(ev)
+                }
+                return false
             }
             "box-only" -> {
-                // Only this view handles touches, not children
-                // Don't dispatch to children
                 return onTouchEvent(ev)
             }
             else -> {
-                // "auto" - normal behavior
                 return super.dispatchTouchEvent(ev)
             }
         }
@@ -239,11 +249,21 @@ class RNPylonChatView(context: Context) : FrameLayout(context) {
         pylonChatView = newView
     }
     
+    private class PylonEvent(
+        surfaceId: Int,
+        viewId: Int,
+        private val name: String,
+        private val data: WritableMap
+    ) : Event<PylonEvent>(surfaceId, viewId) {
+        override fun getEventName(): String = name
+        override fun getEventData(): WritableMap = data
+    }
+
     private fun sendEvent(eventName: String, params: WritableMap) {
         val reactContext = context as ReactContext
-        reactContext
-            .getJSModule(RCTEventEmitter::class.java)
-            .receiveEvent(id, eventName, params)
+        val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
+        val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
+        dispatcher?.dispatchEvent(PylonEvent(surfaceId, id, eventName, params))
     }
     
     // Imperative methods

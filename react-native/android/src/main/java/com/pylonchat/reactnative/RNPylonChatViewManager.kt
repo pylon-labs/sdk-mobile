@@ -1,21 +1,19 @@
 package com.pylonchat.reactnative
 
-import android.graphics.Color
-import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.MapBuilder
+import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.uimanager.ViewManagerDelegate
 import com.facebook.react.uimanager.annotations.ReactProp
-import com.facebook.react.uimanager.events.RCTEventEmitter
-import com.pylon.chatwidget.PylonChatListener
-import com.pylon.chatwidget.PylonChatView
-import com.pylon.chatwidget.PylonConfig
-import com.pylon.chatwidget.PylonUser
+import com.facebook.react.viewmanagers.RNPylonChatViewManagerDelegate
+import com.facebook.react.viewmanagers.RNPylonChatViewManagerInterface
 
-class RNPylonChatViewManager : SimpleViewManager<RNPylonChatView>() {
-    
+@ReactModule(name = RNPylonChatViewManager.REACT_CLASS)
+class RNPylonChatViewManager : SimpleViewManager<RNPylonChatView>(),
+    RNPylonChatViewManagerInterface<RNPylonChatView> {
+
     companion object {
         const val REACT_CLASS = "RNPylonChatView"
         const val COMMAND_OPEN_CHAT = 1
@@ -31,104 +29,142 @@ class RNPylonChatViewManager : SimpleViewManager<RNPylonChatView>() {
         const val COMMAND_CLICK_ELEMENT_AT_SELECTOR = 11
     }
 
+    private val mDelegate = RNPylonChatViewManagerDelegate(this)
+
+    override fun getDelegate(): ViewManagerDelegate<RNPylonChatView> = mDelegate
+
     override fun getName(): String = REACT_CLASS
 
     override fun createViewInstance(reactContext: ThemedReactContext): RNPylonChatView {
         return RNPylonChatView(reactContext)
     }
 
-    // Config props
     @ReactProp(name = "appId")
-    fun setAppId(view: RNPylonChatView, appId: String?) {
+    override fun setAppId(view: RNPylonChatView, appId: String?) {
         view.appId = appId
     }
 
     @ReactProp(name = "widgetBaseUrl")
-    fun setWidgetBaseUrl(view: RNPylonChatView, url: String?) {
+    override fun setWidgetBaseUrl(view: RNPylonChatView, url: String?) {
         view.widgetBaseUrl = url
     }
 
     @ReactProp(name = "widgetScriptUrl")
-    fun setWidgetScriptUrl(view: RNPylonChatView, url: String?) {
+    override fun setWidgetScriptUrl(view: RNPylonChatView, url: String?) {
         view.widgetScriptUrl = url
     }
 
     @ReactProp(name = "enableLogging")
-    fun setEnableLogging(view: RNPylonChatView, enabled: Boolean) {
+    override fun setEnableLogging(view: RNPylonChatView, enabled: Boolean) {
         view.enableLogging = enabled
     }
 
     @ReactProp(name = "debugMode")
-    fun setDebugMode(view: RNPylonChatView, enabled: Boolean) {
+    override fun setDebugMode(view: RNPylonChatView, enabled: Boolean) {
         view.debugMode = enabled
+    }
+
+    @ReactProp(name = "primaryColor")
+    override fun setPrimaryColor(view: RNPylonChatView, color: String?) {
+        view.primaryColor = color
+    }
+
+    @ReactProp(name = "userEmail")
+    override fun setUserEmail(view: RNPylonChatView, email: String?) {
+        view.userEmail = email
+    }
+
+    @ReactProp(name = "userName")
+    override fun setUserName(view: RNPylonChatView, name: String?) {
+        view.userName = name
+    }
+
+    @ReactProp(name = "userAvatarUrl")
+    override fun setUserAvatarUrl(view: RNPylonChatView, url: String?) {
+        view.userAvatarUrl = url
+    }
+
+    @ReactProp(name = "userEmailHash")
+    override fun setUserEmailHash(view: RNPylonChatView, hash: String?) {
+        view.userEmailHash = hash
+    }
+
+    @ReactProp(name = "userAccountId")
+    override fun setUserAccountId(view: RNPylonChatView, id: String?) {
+        view.userAccountId = id
+    }
+
+    @ReactProp(name = "userAccountExternalId")
+    override fun setUserAccountExternalId(view: RNPylonChatView, id: String?) {
+        view.userAccountExternalId = id
+    }
+
+    @ReactProp(name = "topInset")
+    override fun setTopInset(view: RNPylonChatView, topInset: Double) {
+        view.topInset = topInset.toFloat()
     }
 
     @ReactProp(name = "pointerEvents")
     fun setPointerEvents(view: RNPylonChatView, pointerEvents: String?) {
         val mode = pointerEvents ?: "auto"
         view.setPointerEventsMode(mode)
-        
+
         when (mode) {
             "none" -> {
-                // Don't handle any touches - let them pass through
                 view.isClickable = false
                 view.isFocusable = false
             }
             "auto" -> {
-                // Handle touches normally
                 view.isClickable = true
                 view.isFocusable = true
             }
             "box-none" -> {
-                // Only children can handle touches, not this view itself
                 view.isClickable = false
                 view.isFocusable = false
             }
             "box-only" -> {
-                // Only this view handles touches, not children
                 view.isClickable = true
                 view.isFocusable = true
             }
         }
     }
 
-    @ReactProp(name = "primaryColor")
-    fun setPrimaryColor(view: RNPylonChatView, color: String?) {
-        view.primaryColor = color
+    override fun openChat(view: RNPylonChatView) {
+        view.openChat()
     }
 
-    // User props
-    @ReactProp(name = "userEmail")
-    fun setUserEmail(view: RNPylonChatView, email: String?) {
-        view.userEmail = email
+    override fun closeChat(view: RNPylonChatView) {
+        view.closeChat()
     }
 
-    @ReactProp(name = "userName")
-    fun setUserName(view: RNPylonChatView, name: String?) {
-        view.userName = name
+    override fun showChatBubble(view: RNPylonChatView) {
+        view.showChatBubble()
     }
 
-    @ReactProp(name = "userAvatarUrl")
-    fun setUserAvatarUrl(view: RNPylonChatView, url: String?) {
-        view.userAvatarUrl = url
+    override fun hideChatBubble(view: RNPylonChatView) {
+        view.hideChatBubble()
     }
 
-    @ReactProp(name = "userEmailHash")
-    fun setUserEmailHash(view: RNPylonChatView, hash: String?) {
-        view.userEmailHash = hash
+    override fun showNewMessage(view: RNPylonChatView, message: String, isHtml: Boolean) {
+        view.showNewMessage(message, isHtml)
     }
 
-    @ReactProp(name = "userAccountId")
-    fun setUserAccountId(view: RNPylonChatView, id: String?) {
-        view.userAccountId = id
+    override fun updateEmailHash(view: RNPylonChatView, emailHash: String) {
+        view.updateEmailHash(emailHash)
     }
 
-    @ReactProp(name = "userAccountExternalId")
-    fun setUserAccountExternalId(view: RNPylonChatView, id: String?) {
-        view.userAccountExternalId = id
+    override fun showTicketForm(view: RNPylonChatView, slug: String) {
+        view.showTicketForm(slug)
     }
 
-    // Event names
+    override fun showKnowledgeBaseArticle(view: RNPylonChatView, articleId: String) {
+        view.showKnowledgeBaseArticle(articleId)
+    }
+
+    override fun clickElementAtSelector(view: RNPylonChatView, selector: String) {
+        view.clickElementAtSelector(selector)
+    }
+
     override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
         return MapBuilder.builder<String, Any>()
             .put("onPylonLoaded", MapBuilder.of("registrationName", "onPylonLoaded"))
@@ -143,7 +179,6 @@ class RNPylonChatViewManager : SimpleViewManager<RNPylonChatView>() {
             .build() as MutableMap<String, Any>
     }
 
-    // Commands
     override fun getCommandsMap(): MutableMap<String, Int> {
         return MapBuilder.builder<String, Int>()
             .put("openChat", COMMAND_OPEN_CHAT)
@@ -198,4 +233,3 @@ class RNPylonChatViewManager : SimpleViewManager<RNPylonChatView>() {
         }
     }
 }
-

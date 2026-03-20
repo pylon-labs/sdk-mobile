@@ -512,6 +512,19 @@ public class PylonChatView: UIView {
         webView.evaluateJavaScript(js, completionHandler: nil)
     }
 
+    /// Re-queries the positions of all tracked interactive elements.
+    /// Call after layout changes or visibility transitions to update hit test bounds.
+    public func refreshInteractiveBounds() {
+        for selector in interactiveBounds.keys {
+            findInteractiveElementPosition(selector: selector)
+        }
+    }
+
+    /// Returns true if at least one interactive element has non-zero bounds.
+    public func hasNonZeroInteractiveBounds() -> Bool {
+        return interactiveBounds.values.contains { !$0.isEmpty && $0.width > 0 && $0.height > 0 }
+    }
+
     // MARK: - Public API
 
     public func openChat() {

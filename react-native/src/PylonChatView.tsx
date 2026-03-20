@@ -2,14 +2,15 @@ import React, { useImperativeHandle, useRef } from "react";
 import {
   findNodeHandle,
   Platform,
-  requireNativeComponent,
   UIManager,
   ViewStyle,
 } from "react-native";
+import RNPylonChatViewNativeComponent, {
+  Commands,
+} from "./specs/RNPylonChatViewNativeComponent";
 import NativePylonChatCommands from "./NativePylonChatCommands";
 import type { PylonChatListener, PylonConfig, PylonUser } from "./types";
 
-// Public API exposed to SDK users.
 export interface PylonChatViewRef {
   openChat: () => void;
   closeChat: () => void;
@@ -23,7 +24,6 @@ export interface PylonChatViewRef {
   showKnowledgeBaseArticle: (articleId: string) => void;
 }
 
-// Internal interface with additional methods for platform-specific implementations.
 export interface PylonChatViewInternalRef extends PylonChatViewRef {
   clickElementAtSelector: (selector: string) => void;
 }
@@ -36,65 +36,13 @@ interface PylonChatViewProps {
   topInset?: number;
 }
 
-interface NativePylonChatViewProps {
-  style?: ViewStyle;
-  pointerEvents?: "box-none" | "none" | "box-only" | "auto";
-  appId: string;
-  widgetBaseUrl?: string;
-  widgetScriptUrl?: string;
-  enableLogging?: boolean;
-  debugMode?: boolean;
-  primaryColor?: string;
-  userEmail?: string;
-  userName?: string;
-  userAvatarUrl?: string;
-  userEmailHash?: string;
-  userAccountId?: string;
-  userAccountExternalId?: string;
-  topInset?: number;
-  onPylonLoaded?: () => void;
-  onPylonInitialized?: () => void;
-  onPylonReady?: () => void;
-  onChatOpened?: () => void;
-  onChatClosed?: (event: { nativeEvent: { wasOpen: boolean } }) => void;
-  onUnreadCountChanged?: (event: { nativeEvent: { count: number } }) => void;
-  onMessageReceived?: (event: { nativeEvent: { message: string } }) => void;
-  onPylonError?: (event: { nativeEvent: { error: string } }) => void;
-  onInteractiveBoundsChanged?: (event: {
-    nativeEvent: {
-      selector: string;
-      left: number;
-      top: number;
-      right: number;
-      bottom: number;
-    };
-  }) => void;
-}
-
-const NativePylonChatView =
-  requireNativeComponent<NativePylonChatViewProps>("RNPylonChatView");
-
-const COMMANDS = {
-  openChat: "openChat",
-  closeChat: "closeChat",
-  showChatBubble: "showChatBubble",
-  hideChatBubble: "hideChatBubble",
-  showNewMessage: "showNewMessage",
-  setNewIssueCustomFields: "setNewIssueCustomFields",
-  setTicketFormFields: "setTicketFormFields",
-  updateEmailHash: "updateEmailHash",
-  showTicketForm: "showTicketForm",
-  showKnowledgeBaseArticle: "showKnowledgeBaseArticle",
-  clickElementAtSelector: "clickElementAtSelector",
-};
-
 export const PylonChatView = React.forwardRef<
   PylonChatViewInternalRef,
   PylonChatViewProps
 >(({ config, user, style, listener, topInset = 0 }, ref) => {
   const nativeRef = useRef(null);
 
-  const dispatchCommand = (commandName: string, args: any[] = []) => {
+  const dispatchDictionaryCommand = (commandName: string, args: any[] = []) => {
     if (Platform.OS === "ios") {
       if (!NativePylonChatCommands) {
         console.error(
@@ -119,34 +67,64 @@ export const PylonChatView = React.forwardRef<
     }
   };
 
-  // Expose imperative methods via ref
   useImperativeHandle(
     ref,
     () => ({
-      openChat: () => dispatchCommand(COMMANDS.openChat),
-      closeChat: () => dispatchCommand(COMMANDS.closeChat),
-      showChatBubble: () => dispatchCommand(COMMANDS.showChatBubble),
-      hideChatBubble: () => dispatchCommand(COMMANDS.hideChatBubble),
-      showNewMessage: (message: string, isHtml = false) =>
-        dispatchCommand(COMMANDS.showNewMessage, [message, isHtml]),
+      openChat: () => {
+        if (nativeRef.current) {
+          Commands.openChat(nativeRef.current);
+        }
+      },
+      closeChat: () => {
+        if (nativeRef.current) {
+          Commands.closeChat(nativeRef.current);
+        }
+      },
+      showChatBubble: () => {
+        if (nativeRef.current) {
+          Commands.showChatBubble(nativeRef.current);
+        }
+      },
+      hideChatBubble: () => {
+        if (nativeRef.current) {
+          Commands.hideChatBubble(nativeRef.current);
+        }
+      },
+      showNewMessage: (message: string, isHtml = false) => {
+        if (nativeRef.current) {
+          Commands.showNewMessage(nativeRef.current, message, isHtml);
+        }
+      },
       setNewIssueCustomFields: (fields: Record<string, any>) =>
-        dispatchCommand(COMMANDS.setNewIssueCustomFields, [fields]),
+        dispatchDictionaryCommand("setNewIssueCustomFields", [fields]),
       setTicketFormFields: (fields: Record<string, any>) =>
-        dispatchCommand(COMMANDS.setTicketFormFields, [fields]),
-      updateEmailHash: (emailHash: string | null) =>
-        dispatchCommand(COMMANDS.updateEmailHash, [emailHash]),
-      showTicketForm: (slug: string) =>
-        dispatchCommand(COMMANDS.showTicketForm, [slug]),
-      showKnowledgeBaseArticle: (articleId: string) =>
-        dispatchCommand(COMMANDS.showKnowledgeBaseArticle, [articleId]),
-      clickElementAtSelector: (selector: string) =>
-        dispatchCommand(COMMANDS.clickElementAtSelector, [selector]),
+        dispatchDictionaryCommand("setTicketFormFields", [fields]),
+      updateEmailHash: (emailHash: string | null) => {
+        if (nativeRef.current) {
+          Commands.updateEmailHash(nativeRef.current, emailHash ?? "");
+        }
+      },
+      showTicketForm: (slug: string) => {
+        if (nativeRef.current) {
+          Commands.showTicketForm(nativeRef.current, slug);
+        }
+      },
+      showKnowledgeBaseArticle: (articleId: string) => {
+        if (nativeRef.current) {
+          Commands.showKnowledgeBaseArticle(nativeRef.current, articleId);
+        }
+      },
+      clickElementAtSelector: (selector: string) => {
+        if (nativeRef.current) {
+          Commands.clickElementAtSelector(nativeRef.current, selector);
+        }
+      },
     }),
     [],
   );
 
   return (
-    <NativePylonChatView
+    <RNPylonChatViewNativeComponent
       ref={nativeRef}
       style={style}
       pointerEvents="box-none"
