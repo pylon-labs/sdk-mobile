@@ -182,6 +182,7 @@ public class PylonChatView: UIView {
     private let config: PylonConfig
     private var user: PylonUser?
     private var webView: WKWebView!
+    private var webViewBottomConstraint: NSLayoutConstraint?
     private var hasStartedLoading = false
     private var isLoaded = false
     private var isChatWindowOpen = false
@@ -217,10 +218,54 @@ public class PylonChatView: UIView {
         self.user = user
         super.init(frame: .zero)
         setupWebView()
+        observeKeyboard()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    // Shrink the WebView frame above the keyboard so the web viewport becomes the visible
+    // area; WKWebView's own keyboard viewport reporting is too inconsistent to size against.
+    private func observeKeyboard() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardFrameWillChange(_:)),
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillHide(_:)),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
+    }
+
+    @objc private func keyboardFrameWillChange(_ notification: Notification) {
+        guard let window = window,
+              let frameValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue else {
+            return
+        }
+        let keyboardInWindow = window.convert(frameValue.cgRectValue, from: window.screen.coordinateSpace)
+        let viewInWindow = convert(bounds, to: window)
+        let overlap = max(0, viewInWindow.maxY - keyboardInWindow.minY)
+        setKeyboardOverlap(overlap, notification: notification)
+    }
+
+    @objc private func keyboardWillHide(_ notification: Notification) {
+        setKeyboardOverlap(0, notification: notification)
+    }
+
+    private func setKeyboardOverlap(_ overlap: CGFloat, notification: Notification) {
+        guard webViewBottomConstraint?.constant != -overlap else { return }
+        webViewBottomConstraint?.constant = -overlap
+        let duration = (notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double) ?? 0.25
+        UIView.animate(withDuration: duration) { self.layoutIfNeeded() }
     }
 
     private lazy var debugOverlay: DebugOverlayView = {
@@ -258,16 +303,22 @@ public class PylonChatView: UIView {
         webView.navigationDelegate = self
         webView.uiDelegate = self
 
+        // The chat scrolls inside its own iframe, so the outer scroll only adds WKWebView's
+        // scroll-to-reveal, which fights the keyboard frame resize. Disable it.
+        webView.scrollView.isScrollEnabled = false
+
         // Make webView not block touches when chat is closed
         webView.isUserInteractionEnabled = true
 
         addSubview(webView)
 
+        let bottomConstraint = webView.bottomAnchor.constraint(equalTo: bottomAnchor)
+        webViewBottomConstraint = bottomConstraint
         NSLayoutConstraint.activate([
             webView.topAnchor.constraint(equalTo: topAnchor),
             webView.leadingAnchor.constraint(equalTo: leadingAnchor),
             webView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            webView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            bottomConstraint
         ])
 
         // Add debug overlay if in debug mode

@@ -14,11 +14,11 @@
   },
   "dependencies": {
     "@pylon/react-native-chat": "file:..",
-    "expo": "~54.0.25",
+    "expo": "~54.0.35",
     "expo-dev-client": "~6.0.18",
     "expo-status-bar": "~3.0.8",
     "react": "19.1.0",
-    "react-native": "0.85.0",
+    "react-native": "0.81.5",
     "react-native-safe-area-context": "5.6.2"
   },
   "devDependencies": {
