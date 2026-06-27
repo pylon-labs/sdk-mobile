@@ -23,6 +23,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import androidx.core.net.toUri
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import org.json.JSONObject
 
 /**
@@ -126,6 +128,7 @@ class PylonChat : FrameLayout {
     private var hasStartedLoading = false
     private var isLoaded = false
     private var isChatWindowOpen = false
+    private var insetsHost: View? = null
 
     private val interactiveBounds = InteractiveElementId.entries
         .associate { it.selector to Rect() }
@@ -144,11 +147,56 @@ class PylonChat : FrameLayout {
             debugOverlay.bounds = interactiveBounds
         }
         setupWebView()
+        observeKeyboardInsets()
     }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        ViewCompat.requestApplyInsets(this)
         ensurePylonLoaded()
+    }
+
+    /**
+     * Shrink the WebView to sit above the soft keyboard so the web viewport becomes the
+     * visible area and the widget condenses the chat to fit. The WebView's own viewport
+     * doesn't shrink for the IME, and under edge-to-edge (targetSdk 35+) the window isn't
+     * resized either, so we track the IME inset and apply it as the WebView's bottom margin.
+     *
+     * We resize once per keyboard show/hide (not per animation frame): each resize forces
+     * the web content to reflow, and reflowing every frame lags behind the native slide and
+     * looks like the chat thrashing. A single resize lets the OS animate the keyboard over
+     * the already-condensed chat smoothly.
+     *
+     * The listener is attached to the Activity content view, not this view: hosts like
+     * Jetpack Compose consume window insets before they reach an embedded child, so a
+     * listener on the WebView's own parent never fires.
+     */
+    private fun observeKeyboardInsets() {
+        val host = findActivity()?.findViewById<View>(android.R.id.content) ?: this
+        insetsHost = host
+        ViewCompat.setOnApplyWindowInsetsListener(host) { _, insets ->
+            setKeyboardOverlap(insets.getInsets(WindowInsetsCompat.Type.ime()).bottom)
+            insets
+        }
+    }
+
+    private fun findActivity(): Activity? {
+        var ctx: Context? = context
+        while (ctx is android.content.ContextWrapper) {
+            if (ctx is Activity) {
+                return ctx
+            }
+            ctx = ctx.baseContext
+        }
+        return null
+    }
+
+    private fun setKeyboardOverlap(overlap: Int) {
+        val params = webView.layoutParams as? LayoutParams ?: return
+        if (params.bottomMargin != overlap) {
+            params.bottomMargin = overlap
+            webView.layoutParams = params
+        }
     }
 
     /**
@@ -514,6 +562,10 @@ class PylonChat : FrameLayout {
         activeFilePathCallback?.onReceiveValue(null)
         activeFilePathCallback = null
         listener = null
+        insetsHost?.let {
+            ViewCompat.setOnApplyWindowInsetsListener(it, null)
+        }
+        insetsHost = null
         webView.destroy()
     }
 

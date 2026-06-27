@@ -4,7 +4,84 @@ Demo application showcasing the Pylon Chat SDK for Android. This is a complete C
 
 ---
 
-## Quick Start
+## Quick Start (command line — agent-friendly, no Android Studio)
+
+This path builds, installs, launches, screenshots, and tails logs entirely from the
+terminal — no GUI clicking — so it works well for agent-assisted development. It mirrors
+the iOS `simctl` loop.
+
+### 1. One-time toolchain install (Homebrew, no sudo)
+
+```bash
+brew install openjdk@17                      # JDK 17 (AGP 8.13 / Gradle 8.13 need it)
+brew install --cask android-commandlinetools # populates $ANDROID_HOME
+
+export JAVA_HOME=/opt/homebrew/opt/openjdk@17
+export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
+export PATH="$JAVA_HOME/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+
+yes | sdkmanager --licenses
+sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" \
+           "emulator" "system-images;android-36;google_apis;arm64-v8a"
+avdmanager create avd -n pylon_pixel -k "system-images;android-36;google_apis;arm64-v8a" -d pixel_7
+```
+
+> The toolchain isn't on `PATH` in non-interactive shells — re-export `JAVA_HOME`,
+> `ANDROID_HOME`, and `PATH` (above) in each shell, or source them from a small env file.
+
+### 2. Configure the app
+
+```bash
+cd android
+cp env.local.example .env.local              # set WIDGET_APP_ID, USER_EMAIL, USER_NAME
+echo "sdk.dir=$ANDROID_HOME" > local.properties
+```
+
+`.env.local` and `local.properties` are gitignored. Leave `WIDGET_BASE_URL` empty to hit
+the production widget (`widget.usepylon.com`).
+
+### 3. Boot, build, run
+
+```bash
+emulator -avd pylon_pixel -no-boot-anim -gpu auto -no-audio &   # boot once, leave running
+adb wait-for-device
+until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; do sleep 2; done
+
+./gradlew :app:installDebug                                     # build + install (incremental)
+adb shell am start -n com.example.chatwidgetdemo/.MainActivity  # launch
+```
+
+### 4. Inspect (the agent loop)
+
+```bash
+adb exec-out screencap -p > screen.png                 # screenshot
+adb logcat -s PylonWidget chromium                     # SDK + web console logs
+adb shell input tap <x> <y>                            # drive the UI
+adb shell uiautomator dump /sdcard/u.xml               # find element bounds to tap
+```
+
+### 5. Soft keyboard in the emulator (important gotcha)
+
+The emulator's virtual input device always advertises a hardware keyboard, so Android
+**hides the on-screen keyboard** by default. Force it on (persists across reboots):
+
+```bash
+adb shell settings put secure show_ime_with_hard_keyboard 1
+```
+
+If the keyboard then shows as a small **floating bar** pinned to a screen edge (it reports
+a zero IME inset, so it won't reproduce keyboard-overlap behavior), reset Gboard to its
+docked default and re-summon it **without hand-dragging it** (dragging is what flips it into
+floating mode):
+
+```bash
+adb shell pm clear com.google.android.inputmethod.latin
+adb shell ime set com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME
+```
+
+---
+
+## Quick Start (Android Studio)
 
 ### 1. Configure Your App ID
 
