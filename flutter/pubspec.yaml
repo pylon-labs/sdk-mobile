@@ -1,0 +1,28 @@
+name: pylon_chat
+description: "Pylon's chat widget for Flutter — in-app customer support for iOS and Android."
+version: 0.1.0
+homepage: https://github.com/pylon-labs/sdk-mobile
+repository: https://github.com/pylon-labs/sdk-mobile
+issue_tracker: https://github.com/pylon-labs/sdk-mobile/issues
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.pylon.chatwidget.flutter
+        pluginClass: PylonChatPlugin
+      ios:
+        pluginClass: PylonChatPlugin

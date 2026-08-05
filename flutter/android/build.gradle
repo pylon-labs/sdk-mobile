@@ -1,0 +1,56 @@
+group = "com.pylon.chatwidget.flutter"
+version = "1.0-SNAPSHOT"
+
+buildscript {
+    ext.kotlin_version = "2.1.0"
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.9.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+
+android {
+    // The bridge lives in its own package so it does not collide with the
+    // vendored SDK sources under com.pylon.chatwidget.
+    namespace = "com.pylon.chatwidget.flutter"
+
+    compileSdk = 36
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11
+    }
+
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+    }
+
+    defaultConfig {
+        // Matches the standalone Android SDK.
+        minSdk = 24
+    }
+}
+
+dependencies {
+    // Used by the vendored SDK for window insets and Uri helpers.
+    implementation("androidx.core:core-ktx:1.13.1")
+}

@@ -385,6 +385,14 @@ class PylonChat : FrameLayout {
     }
 
     /**
+     * Re-queries the positions of all tracked interactive elements.
+     * Call after layout changes or visibility transitions to update hit test bounds.
+     */
+    fun refreshInteractiveBounds() {
+        interactiveBounds.keys.forEach { findInteractiveElementPosition(it) }
+    }
+
+    /**
      * Public API to force loading (or reloading) the pylon HTML manually.
      */
     fun loadPylon(forceReload: Boolean = false) {

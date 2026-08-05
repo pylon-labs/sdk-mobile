@@ -75,6 +75,10 @@ public protocol PylonChatListener: AnyObject {
     func onChatClosed(wasOpen: Bool)
     func onPylonError(error: String)
     func onUnreadCountChanged(count: Int)
+    /// Called whenever the bounds of an interactive element change.
+    /// Used by embedders (e.g. Flutter) that hit test outside this view.
+    /// Bounds are in points, relative to this view's coordinate space.
+    func onInteractiveBoundsChanged(selector: String, bounds: CGRect)
 }
 
 public extension PylonChatListener {
@@ -86,6 +90,7 @@ public extension PylonChatListener {
     func onChatClosed(wasOpen: Bool) {}
     func onPylonError(error: String) {}
     func onUnreadCountChanged(count: Int) {}
+    func onInteractiveBoundsChanged(selector: String, bounds: CGRect) {}
 }
 
 // MARK: - Pylon (Main SDK Entry Point)
@@ -775,6 +780,7 @@ extension PylonChatView: WKScriptMessageHandler {
                     let rect = CGRect(x: left, y: top, width: right - left, height: bottom - top)
                     self.log("📱 Pylon: Updating bounds for \(selector): \(rect)")
                     self.interactiveBounds[selector] = rect
+                    self.listener?.onInteractiveBoundsChanged(selector: selector, bounds: rect)
 
                     // Update debug overlay
                     if self.config.debugMode {
