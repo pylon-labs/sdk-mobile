@@ -361,6 +361,56 @@ cd ios && pod install && cd ..
 
 ## Development Workflow
 
+### Metro dependency overrides
+
+This demo pins the Metro package family to 0.83.8. Expo SDK 54's
+`@expo/metro@54.2.0` pins these packages to 0.83.3, which calls image-size
+with a filename when processing image assets. Overriding image-size 1.x
+with 2.x breaks that API. [Metro 0.83.8](https://github.com/react/metro/releases/tag/v0.83.8)
+removes image-size and uses internal parsers to address its security advisories.
+
+Keep the Metro versions aligned across Expo and the React Native CLI. Remove
+these overrides once a compatible Expo release supplies the fixed Metro family,
+then repeat the asset checks below. The overrides belong to this standalone
+demo; they do not affect the main application's pnpm workspace.
+
+After installing the demo's locked dependencies, check the filename-based asset
+API from this directory:
+
+```bash
+node <<'JS'
+const assert = require('node:assert/strict');
+const path = require('node:path');
+const { getAssetData } = require('metro/private/Assets');
+
+getAssetData(path.resolve('assets/icon.png'), 'assets/icon.png', [], 'ios', '/assets')
+  .then(({ width, height }) => {
+    assert.equal(width, 1024);
+    assert.equal(height, 1024);
+    console.log('Metro image asset dimensions: OK');
+  })
+  .catch(error => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+JS
+```
+
+For an integration check, temporarily render an existing PNG in `App.tsx` with
+React Native's `Image` and `require('./assets/icon.png')`, keeping the chat SDK
+import. Export both platforms and verify the image is included in the output:
+
+```bash
+pnpm_config_verify_deps_before_run=false pnpm exec expo export --platform ios --clear
+pnpm_config_verify_deps_before_run=false pnpm exec expo export --platform android --clear
+```
+
+The environment setting prevents pnpm's automatic pre-execution install from
+replacing this demo's npm-locked dependency tree during the check. In the main
+repository, run these commands through `direnv exec .`. Remove the temporary
+image and export output afterward. Also check rendering on an iOS simulator and
+Android emulator when available; an export does not verify native rendering.
+
 ### Making Code Changes
 
 1. Edit `App.tsx` or other files
